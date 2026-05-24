@@ -1,0 +1,13 @@
+import com.ftn.sbnz.kjar.model.facts.UserFact;
+import com.ftn.sbnz.kjar.model.facts.MovieFact;
+import com.ftn.sbnz.kjar.model.DislikedKeyword;
+
+rule "Generate DislikedKeyword facts"
+when
+    $user : UserFact($uid : id, $dislikedMovieIds : dislikedMovieIds)
+    $movie : MovieFact(movieId memberOf $dislikedMovieIds)
+    $keyword : String() from $movie.keywords
+then
+    insert(new DislikedKeyword($uid, $keyword));
+    System.out.println("Generated DislikedKeyword for " + $keyword);
+end

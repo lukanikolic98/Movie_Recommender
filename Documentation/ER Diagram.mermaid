@@ -1,0 +1,79 @@
+
+erDiagram
+
+    USER ||--o{ USER_MOVIE_STATUS : has
+    USER ||--o{ REVIEW : writes
+
+    MOVIE ||--o{ USER_MOVIE_STATUS : receives
+    MOVIE ||--o{ REVIEW : has
+
+    MOVIE }o--o{ GENRE : has
+    MOVIE }o--o{ KEYWORD : tagged_with
+    MOVIE }o--o{ ACTOR : features_in
+
+    DIRECTOR ||--o{ MOVIE : directs
+
+
+    USER {
+        int id PK
+        string email
+        string password
+        string first_name
+        string last_name
+        enum role
+        bool activated
+        string activation_token
+    }
+
+    MOVIE {
+        int id PK
+        int director_id FK
+        string title
+        string language
+        string overview
+        date release_date
+        int runtime
+        float review_average
+        float tmdb_vote_average
+        int tmdb_vote_count
+        float popularity
+    }
+
+    GENRE {
+        int id PK
+        string name
+    }
+
+    KEYWORD {
+        int id PK
+        string name
+    }
+
+    ACTOR {
+        int id PK
+        string name
+    }
+
+    DIRECTOR {
+        int id PK
+        string name
+    }
+
+    USER_MOVIE_STATUS {
+        int id PK
+        int user_id FK
+        int movie_id FK
+        bool watchlisted
+        bool watched
+        bool reaction
+        datetime updated_at
+    }
+
+    REVIEW {
+        int id PK
+        int user_id FK
+        int movie_id FK
+        int rating
+        string comment
+        datetime created_at
+    }

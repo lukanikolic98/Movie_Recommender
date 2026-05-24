@@ -1,0 +1,13 @@
+import com.ftn.sbnz.kjar.model.facts.UserFact;
+import com.ftn.sbnz.kjar.model.facts.MovieFact;
+import com.ftn.sbnz.kjar.model.LikedKeyword;
+
+rule "Generate LikedKeyword facts"
+when
+    $user : UserFact($uid : id, $likedIds : likedMovieIds)
+    $movie : MovieFact(movieId memberOf $likedIds)
+    $keyword : String() from $movie.keywords
+then
+    insert(new LikedKeyword($uid, $keyword, $movie.getAverageRating()));
+    System.out.println("Generated LikedKeyword for " + $keyword);
+end

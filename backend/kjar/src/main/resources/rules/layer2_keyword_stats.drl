@@ -1,0 +1,29 @@
+import com.ftn.sbnz.kjar.model.KeywordStats;
+import com.ftn.sbnz.kjar.model.LikedKeyword;
+
+rule "Aggregate KeywordStats per user"
+no-loop true
+when
+    $uid : Long()
+    $kw  : String()
+    $count : Long() from accumulate(
+        LikedKeyword(userId == $uid, keyword == $kw),
+        count()
+    )
+        $count : Long() from accumulate(
+        LikedKeyword(userId == $uid, keyword == $kw),
+        count()
+    )
+    $avgRating : Double() from accumulate(
+        LikedKeyword(userId == $uid, keyword == $kw, rating != null, $r : rating),
+        init(double sum = 0; int cnt = 0; ),
+        action(sum += $r; cnt++;),
+        reverse(sum -= $r; cnt--;),
+        result(cnt > 0 ? sum/cnt : 0.0)
+    )
+then
+    System.out.println("KeywordStats built for user " + $uid + 
+                       ", keyword " + $kw + 
+                       ", count=" + $count);
+    insert(new KeywordStats($uid, $kw, $count.intValue()));
+end

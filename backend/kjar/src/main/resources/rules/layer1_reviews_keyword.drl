@@ -1,0 +1,16 @@
+import com.ftn.sbnz.kjar.model.facts.UserFact;
+import com.ftn.sbnz.kjar.model.facts.MovieFact;
+import com.ftn.sbnz.kjar.model.ReviewedKeyword;
+
+rule "Generate ReviewedKeyword facts"
+when
+    $user : UserFact($uid : id, $reviews : reviewedMovies)
+    // match a movie that the user reviewed
+    $movie : MovieFact($mid : movieId) 
+    eval($reviews.containsKey($mid))
+    $keyword : String() from $movie.keywords
+then
+    double rating = (Double) $user.getReviewedMovies().get($movie.getMovieId());
+    insert(new ReviewedKeyword($uid, $keyword, rating));
+    System.out.println("Generated ReviewedKeyword for user " + $uid + ", keyword " + $keyword + ", rating " + rating);
+end

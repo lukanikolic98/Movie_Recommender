@@ -1,0 +1,32 @@
+import com.ftn.sbnz.kjar.model.Recommendation;
+import com.ftn.sbnz.kjar.model.MovieStats;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+rule "Build Recommendation"
+no-loop true
+when
+    $rec : Recommendation($uid : userId)
+    $statsObjects : List() from accumulate(
+        MovieStats(userId == $uid, $ms : this),
+        collectList($ms)
+    )
+then
+    // cast to proper type
+    List<MovieStats> $stats = new ArrayList<>();
+    for (Object obj : $statsObjects) {
+        $stats.add((MovieStats) obj);
+    }
+
+    // sort descending by score
+    $stats.sort(Comparator.comparingDouble(MovieStats::getScore).reversed());
+
+    // add to recommendation
+    for (MovieStats ms : $stats) {
+        $rec.add(ms);
+    }
+
+    update($rec);
+    System.out.println("Recommendation built for user " + $rec);
+end
