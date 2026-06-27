@@ -78,8 +78,8 @@ public class AuthController {
           accessToken,
           refreshToken,
           user.getEmail(),
-          user.getFirstname(),
-          user.getLastname(),
+          user.getFirstName(),
+          user.getLastName(),
           user.getRole()));
     } catch (BadCredentialsException ex) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
