@@ -38,8 +38,8 @@ public class AuthService {
     // Create a new User entity from the DTO
     User user = new User();
     user.setEmail(registerRequest.getEmail());
-    user.setFirstname(registerRequest.getFirstName());
-    user.setLastname(registerRequest.getLastName());
+    user.setFirstName(registerRequest.getFirstName());
+    user.setLastName(registerRequest.getLastName());
     user.setActivated(false);
     user.setActivationToken(generateAccessToken());
     user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
