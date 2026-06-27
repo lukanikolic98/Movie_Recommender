@@ -21,29 +21,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(
-    name = "reviews",
+    name = "user_movie_status",
     uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "movie_id"})
 )
-public class Review {
+public class UserMovieStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = true, columnDefinition = "TEXT")
-    private String comment;
-
-    @Column(nullable = false)
-    private int rating;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean watchlisted = false;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean watched = false;
+
+    // null = no reaction, true = liked, false = disliked
+    @Column(nullable = true)
+    private Boolean reaction;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
