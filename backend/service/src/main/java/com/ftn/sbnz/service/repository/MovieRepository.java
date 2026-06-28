@@ -32,7 +32,16 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 //   @Query("SELECT m FROM Movie m JOIN m.categories c WHERE c.name = :categoryName")
 //   List<Movie> findByCategory(@Param("categoryName") String categoryName);
 
-  List<Movie> findAllByDeletedFalse();
+    @Query("""
+        SELECT DISTINCT m FROM Movie m
+        LEFT JOIN m.genres g
+        LEFT JOIN m.keywords k
+        WHERE LOWER(m.title) LIKE LOWER(CONCAT('%', :term, '%'))
+        OR LOWER(g.name)     LIKE LOWER(CONCAT('%', :term, '%'))
+        OR LOWER(k.name)     LIKE LOWER(CONCAT('%', :term, '%'))
+    """)
+    List<Movie> search(@Param("term") String term);
+    List<Movie> findAllByDeletedFalse();
 
-  Optional<Movie> findByIdAndDeletedFalse(Long id);
+    Optional<Movie> findByIdAndDeletedFalse(Long id);
 }
