@@ -41,13 +41,14 @@ public class ReviewService {
 
         // one review per user per movie
         if (reviewRepository.findByUserAndMovie(user, movie).isPresent()) {
+            System.out.println("Duplicate review detected");
             throw new ResponseStatusException(
-                HttpStatus.CONFLICT, "You have already reviewed this movie");
+                    HttpStatus.CONFLICT, "You have already reviewed this movie");
         }
 
         if (dto.getRating() < 1 || dto.getRating() > 10) {
             throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, "Rating must be between 1 and 10");
+                    HttpStatus.BAD_REQUEST, "Rating must be between 1 and 10");
         }
 
         Review review = new Review();
@@ -71,6 +72,28 @@ public class ReviewService {
         movieRepository.save(movie);
     }
 
+    // -- Delete a review
+    @Transactional
+    public Boolean deleteReview(Long movieId, Long reviewId) {
+
+        User currentUser = userService.getCurrentUser();
+
+        Review review = reviewRepository
+                .findByIdAndMovieIdAndUserId(
+                        reviewId,
+                        movieId,
+                        currentUser.getId())
+                .orElse(null);
+
+        if (review == null) {
+            return false;
+        }
+
+        reviewRepository.delete(review);
+
+        return true;
+    }
+
     // -- Map Review ---> ReviewDto
     private ReviewDto toDto(Review review) {
         ReviewDto dto = new ReviewDto();
@@ -86,6 +109,6 @@ public class ReviewService {
     private Movie findMovie(Long id) {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Movie not found: " + id));
+                        HttpStatus.NOT_FOUND, "Movie not found: " + id));
     }
 }

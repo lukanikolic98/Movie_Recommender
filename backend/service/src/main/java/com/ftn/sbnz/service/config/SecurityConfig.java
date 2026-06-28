@@ -23,16 +23,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true) // enable @PreAuthorize
 public class SecurityConfig {
 
-  @Autowired
-  private JwtRequestFilter jwtRequestFilter;
+  private final JwtRequestFilter jwtRequestFilter;
 
-  @Autowired
-  private CustomUserDetailsService userDetailsService;
+  private final CustomUserDetailsService userDetailsService;
 
-  @SuppressWarnings("deprecation")
+  SecurityConfig(CustomUserDetailsService userDetailsService, JwtRequestFilter jwtRequestFilter) {
+    this.userDetailsService = userDetailsService;
+    this.jwtRequestFilter = jwtRequestFilter;
+  }
+
   @Bean
   public DaoAuthenticationProvider authenticationProvider() {
-    @SuppressWarnings("deprecation")
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
     authProvider.setUserDetailsService(userDetailsService);
     authProvider.setPasswordEncoder(passwordEncoder());
@@ -59,6 +60,7 @@ public class SecurityConfig {
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers("/api/movies/**").permitAll()
+            .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())
         .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
