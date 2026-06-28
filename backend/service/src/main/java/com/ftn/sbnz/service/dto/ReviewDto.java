@@ -1,13 +1,7 @@
 package com.ftn.sbnz.service.dto;
 
-import com.ftn.sbnz.model.models.Movie;
+import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-
-import com.ftn.sbnz.model.models.Category;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +15,5 @@ public class ReviewDto {
   private String comment;
   private int rating;
   private String userName;
+  private LocalDateTime createdAt;
 }
