@@ -1,7 +1,10 @@
 package com.ftn.sbnz.service.controller;
 
+import com.ftn.sbnz.model.models.UserMovieStatus;
 import com.ftn.sbnz.service.dto.MovieDto;
 import com.ftn.sbnz.service.service.MoviesService;
+import com.ftn.sbnz.service.service.UserMovieStatusService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +18,7 @@ import java.util.List;
 public class MoviesController {
 
     private final MoviesService moviesService;
+    private final UserMovieStatusService statusService;
 
     // GET /api/movies
     @GetMapping
@@ -34,6 +38,30 @@ public class MoviesController {
     @GetMapping("/search")
     public List<MovieDto> search(@RequestParam String term) {
         return moviesService.search(term);
+    }
+
+    // POST /api/movies/{id}/like
+    @PostMapping("/{id}/like")
+    public ResponseEntity<MovieDto> likeMovie(@PathVariable Long id) {
+        return ResponseEntity.ok(statusService.react(id, true));
+    }
+ 
+    // POST /api/movies/{id}/dislike
+    @PostMapping("/{id}/dislike")
+    public ResponseEntity<MovieDto> dislikeMovie(@PathVariable Long id) {
+        return ResponseEntity.ok(statusService.react(id, false));
+    }
+ 
+    // POST /api/movies/{id}/watchlist
+    @PostMapping("/{id}/watchlist")
+    public ResponseEntity<MovieDto> toggleWatchlist(@PathVariable Long id) {
+        return ResponseEntity.ok(statusService.toggleWatchlist(id));
+    }
+ 
+    // POST /api/movies/{id}/watched
+    @PostMapping("/{id}/watched")
+    public ResponseEntity<MovieDto> markWatched(@PathVariable Long id) {
+        return ResponseEntity.ok(statusService.toggleWatched(id));
     }
 
     // DELETE /api/movies/{id}  (admin only)

@@ -19,7 +19,7 @@ public class MoviesService {
     private final UserMovieStatusRepository userMovieStatusRepository;
     private final UserService userService;
 
-    // ── Get all movies ────────────────────────────────────────────────────────
+    // ── Get all movies
     public List<MovieDto> getAllMovies() {
         User currentUser = userService.getCurrentUser();
         return movieRepository.findAll()
@@ -28,14 +28,14 @@ public class MoviesService {
                 .collect(Collectors.toList());
     }
 
-    // ── Get movie by ID ───────────────────────────────────────────────────────
+    // ── Get movie by ID
     public Optional<MovieDto> getMovieById(Long id) {
         User currentUser = userService.getCurrentUser();
         return movieRepository.findById(id)
                 .map(movie -> toDto(movie, currentUser));
     }
 
-    // ── Search by title, genre, or keyword ───────────────────────────────────
+    // ── Search by title, genre, or keyword
     public List<MovieDto> search(String term) {
         User currentUser = userService.getCurrentUser();
         return movieRepository.search(term)
@@ -44,7 +44,7 @@ public class MoviesService {
                 .collect(Collectors.toList());
     }
 
-    // ── Soft delete (admin only) ──────────────────────────────────────────────
+    // ── Soft delete (admin only)
     public boolean deleteMovie(Long id) {
         return movieRepository.findById(id).map(movie -> {
             movie.setDeleted(true);
@@ -53,7 +53,7 @@ public class MoviesService {
         }).orElse(false);
     }
 
-    // ── Map Movie entity → MovieDto ───────────────────────────────────────────
+    // ── Map Movie entity ---> MovieDto
     public MovieDto toDto(Movie movie, User currentUser) {
         MovieDto dto = new MovieDto();
         dto.setId(movie.getId());
