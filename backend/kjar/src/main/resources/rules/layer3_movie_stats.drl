@@ -1,17 +1,43 @@
+package rules;
+
 import com.ftn.sbnz.kjar.model.facts.UserFact;
 import com.ftn.sbnz.kjar.model.facts.MovieFact;
-import com.ftn.sbnz.kjar.model.KeywordStats;
-import com.ftn.sbnz.kjar.model.MovieStats;
+import com.ftn.sbnz.kjar.model.level_2.KeywordStats;
+import com.ftn.sbnz.kjar.model.level_3.MovieStats;
+import java.util.List;
 
-rule "Compute MovieStats score"
-no-loop true
+// A3 – For each unwatched movie, accumulate KeywordStats scores
+//      to produce a MovieStats fact
+rule "Accumulate MovieStats"
+agenda-group "A3"
 when
-    $user : UserFact($uid : id)
-    $movie : MovieFact($mid : movieId, $keywords : keywords)
-    $stat  : KeywordStats(userId == $uid, $kw : keyword, $count : count, $avg : averageRating)
-    eval($keywords.contains($kw))
+    $user : UserFact(
+        $userId : id,
+        $watched : watchedMovieIds
+    )
+
+    $movie : MovieFact(
+        $movieId : id,
+        $title : title,
+        $keywords : keywords,
+        eval(!$watched.contains($movieId))
+    )
+
+    $totalScore : Double() from accumulate(
+        KeywordStats(
+            userId == $userId,
+            keyword memberOf $keywords,
+            $score : score()
+        ),
+        sum($score)
+    )
+
+    eval($totalScore > 0)
 then
-    double score = $count * $avg;
-    System.out.println("MovieStats for user " + $uid + ", movie " + $mid + ", score " + score);
-    insert(new MovieStats($uid, $mid, score));
+    insert(new MovieStats(
+        $userId,
+        $movieId,
+        $title,
+        $totalScore
+    ));
 end

@@ -1,13 +1,23 @@
+package rules;
+
 import com.ftn.sbnz.kjar.model.facts.UserFact;
 import com.ftn.sbnz.kjar.model.facts.MovieFact;
-import com.ftn.sbnz.kjar.model.LikedKeyword;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction.InteractionType;
 
-rule "Generate LikedKeyword facts"
-when
-    $user : UserFact($uid : id, $likedIds : likedMovieIds)
-    $movie : MovieFact(movieId memberOf $likedIds)
-    $keyword : String() from $movie.keywords
-then
-    insert(new LikedKeyword($uid, $keyword, $movie.getAverageRating()));
-    System.out.println("Generated LikedKeyword for " + $keyword);
+// A1 – For each liked movie, create a like KeywordInteraction fact per keyword
+rule "Like Movie -> KeywordInteraction"
+agenda-group "A1"
+    when
+        $user : UserFact($userId : id)
+        $movie : MovieFact($movieId : id)
+        eval($user.getLikedMovieIds().contains($movieId))
+        $keyword : String() from $movie.getKeywords()
+    then
+        insert(new KeywordInteraction(
+            $userId,
+            $movieId,
+            $keyword,
+            InteractionType.LIKE
+        ));
 end

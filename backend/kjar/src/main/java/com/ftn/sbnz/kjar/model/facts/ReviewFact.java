@@ -3,51 +3,28 @@ package com.ftn.sbnz.kjar.model.facts;
 import java.io.Serializable;
 
 public class ReviewFact implements Serializable {
-
-  private Long movieId;
   private Long userId;
-  private double rating;
+  private Long movieId;
+  private int rating;
 
   public ReviewFact() {
   }
 
-  public ReviewFact(Long movieId, Long userId, double rating, String comment) {
-    this.movieId = movieId;
+  public ReviewFact(Long userId, Long movieId, int rating) {
     this.userId = userId;
-    this.rating = rating;
-  }
-
-  public Long getMovieId() {
-    return movieId;
-  }
-
-  public void setMovieId(Long movieId) {
     this.movieId = movieId;
+    this.rating = rating;
   }
 
   public Long getUserId() {
     return userId;
   }
 
-  public void setUserId(Long userId) {
-    this.userId = userId;
+  public Long getMovieId() {
+    return movieId;
   }
 
-  public double getRating() {
+  public int getRating() {
     return rating;
-  }
-
-  public void setRating(double rating) {
-    this.rating = rating;
-  }
-
-  @Override
-  public String toString() {
-    return "ReviewFact{" +
-        "movieId=" + movieId +
-        ", userId=" + userId +
-        ", rating=" + rating +
-        ", comment='" + '\'' +
-        '}';
   }
 }

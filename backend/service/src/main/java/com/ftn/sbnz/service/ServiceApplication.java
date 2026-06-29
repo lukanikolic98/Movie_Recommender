@@ -37,16 +37,6 @@ public class ServiceApplication {
 		log.info(sb.toString());
 	}
 
-	@Bean
-	public KieContainer kieContainer() {
-		KieServices ks = KieServices.Factory.get();
-		KieContainer kContainer = ks
-				.newKieContainer(ks.newReleaseId("com.ftn.sbnz", "kjar", "0.0.1-SNAPSHOT"));
-		KieScanner kScanner = ks.newKieScanner(kContainer);
-		kScanner.start(1000);
-		return kContainer;
-	}
-
 	/*
 	 * KieServices ks = KieServices.Factory.get(); KieContainer kContainer =
 	 * ks.newKieContainer(ks.newReleaseId("drools-spring-v2",
