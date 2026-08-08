@@ -5,8 +5,6 @@ import com.ftn.sbnz.kjar.model.facts.MovieFact;
 import com.ftn.sbnz.kjar.model.facts.ReviewFact;
 import com.ftn.sbnz.kjar.model.facts.UserFact;
 import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction;
-import com.ftn.sbnz.kjar.model.level_1.LikeKeyword;
-import com.ftn.sbnz.kjar.model.level_1.ReviewKeyword;
 import com.ftn.sbnz.kjar.model.level_2.KeywordStats;
 import com.ftn.sbnz.kjar.model.level_3.MovieStats;
 import com.ftn.sbnz.kjar.model.level_4.Recommendation;
