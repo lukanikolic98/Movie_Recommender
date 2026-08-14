@@ -6,6 +6,7 @@ import com.ftn.sbnz.service.service.CustomUserDetailsService;
 import com.ftn.sbnz.service.service.JwtService;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,12 +34,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
 
-    // Dont include these paths in jwt check
     String path = request.getRequestURI();
-    if (path.startsWith("/auth") || path.startsWith("/h2-console") || path.startsWith("/api/movies/recommendation")) {
-      chain.doFilter(request, response);
-      return;
-    }
+boolean isPublicAuthPath = path.equals("/auth/login")
+    || path.equals("/auth/register")
+    || path.equals("/auth/refresh")
+    || path.startsWith("/auth/confirm-registration");
+
+if (isPublicAuthPath || path.startsWith("/h2-console") || path.startsWith("/api/movies/recommendation")) {
+  chain.doFilter(request, response);
+  return;
+}
 
     final String authorizationHeader = request.getHeader("Authorization");
 
@@ -49,7 +54,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       jwt = authorizationHeader.substring(7);
       try {
         username = jwtService.extractUsername(jwt);
-      } catch (ExpiredJwtException e) {
+      } catch (JwtException e) {
         // token je istekao
         logger.warn("JWT token is invalid: " + e.getMessage());
 
