@@ -47,7 +47,7 @@ public class AuthService {
     // Save the user to the repository
     user = userRepository.save(user);
 
-    String activationLink = "http://localhost:808000/confirm-registration/" + user.getActivationToken();
+    String activationLink = "http://localhost:8080/auth/confirm-registration/" + user.getActivationToken();
     emailService.sendEmail(
         user.getEmail(),
         "Activate your account",

@@ -7,6 +7,7 @@ import com.ftn.sbnz.model.models.UserRole;
 @Data
 @AllArgsConstructor
 public class LoginResponse {
+  private Long id;
   private String accessToken;
   private String refreshToken;
   private String email;

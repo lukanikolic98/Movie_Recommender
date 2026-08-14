@@ -2,10 +2,13 @@ package com.ftn.sbnz.service.controller;
 
 import com.ftn.sbnz.service.dto.LoginRequest;
 import com.ftn.sbnz.service.dto.LoginResponse;
+import com.ftn.sbnz.service.dto.RefreshRequest;
 import com.ftn.sbnz.service.dto.RegisterRequest;
+import com.ftn.sbnz.service.dto.UserResponse;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.service.repository.UserRepository;
 import com.ftn.sbnz.service.service.AuthService;
+import com.ftn.sbnz.service.service.CustomUserDetailsService;
 import com.ftn.sbnz.service.service.JwtService;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,9 @@ public class AuthController {
   @Autowired
   private JwtService jwtUtil;
 
+  @Autowired
+  private CustomUserDetailsService userDetailsService;
+
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody LoginRequest authRequest, HttpServletResponse response) {
     try {
@@ -75,6 +81,7 @@ public class AuthController {
                                                                                                               // token
 
       return ResponseEntity.ok(new LoginResponse(
+          user.getId(),
           accessToken,
           refreshToken,
           user.getEmail(),
@@ -83,8 +90,14 @@ public class AuthController {
           user.getRole()));
     } catch (BadCredentialsException ex) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-    }
-  }
+    } catch (DisabledException e) {
+      return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(Map.of(
+                "message",
+                "Account not yet activated. Please check your email for the activation link."
+            ));
+}  }
 
   @GetMapping("/confirm-registration/{token}")
   public ResponseEntity<?> confirmRegistration(@PathVariable String token) {
@@ -117,5 +130,36 @@ public class AuthController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     }
   }
+
+@PostMapping("/refresh")
+public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
+    try {
+        String username = jwtUtil.extractUsername(request.getRefreshToken());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        if (!jwtUtil.validateToken(request.getRefreshToken(), userDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid refresh token"));
+        }
+
+        String newAccessToken = jwtUtil.generateToken(userDetails, 1000 * 60 * 60);
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired refresh token"));
+    }
+}
+  
+@GetMapping("/me")
+public ResponseEntity<?> me(Authentication authentication) {
+    if (authentication == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+    }
+    User user = userService.findByEmail(authentication.getName()).orElse(null);
+    if (user == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+    }
+    return ResponseEntity.ok(new UserResponse(
+        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
+    ));
+}
 
 }
