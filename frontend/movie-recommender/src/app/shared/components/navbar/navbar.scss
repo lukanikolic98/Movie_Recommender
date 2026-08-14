@@ -1,0 +1,16 @@
+.spacer {
+  flex: 1 1 auto;
+}
+h1 {
+  padding-left: 0.5rem;
+}
+mat-toolbar {
+  border-bottom: 1px solid var(--mat-sys-on-surface);
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.active-link {
+  color: var(--mat-sys-on-surface);
+  font-weight: bold;
+}
