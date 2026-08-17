@@ -65,7 +65,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // allow preflight
-            .requestMatchers("/auth/me").authenticated()
+            .requestMatchers("/auth/me", "/auth/profile", "/auth/change-password").authenticated()
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers("/api/movies/**").permitAll()
