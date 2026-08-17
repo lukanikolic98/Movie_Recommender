@@ -3,16 +3,16 @@
   <mat-card class="profile-card">
 
     <mat-card-header class="profile-header">
-        <div class="avatar">
-            {{ initials }}
-        </div>
+      <div class="avatar">
+        {{ initials }}
+      </div>
 
-        <div class="profile-heading">
-            <mat-card-title>Profile</mat-card-title>
-            <mat-card-subtitle>
-            Manage your account information
-            </mat-card-subtitle>
-        </div>
+      <div class="profile-heading">
+        <mat-card-title>Profile</mat-card-title>
+        <mat-card-subtitle>
+          Manage your account information
+        </mat-card-subtitle>
+      </div>
     </mat-card-header>
 
     <mat-card-content>
@@ -22,6 +22,7 @@
 
           <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
+
             <input
               matInput
               formControlName="firstName">
@@ -33,6 +34,7 @@
 
           <mat-form-field appearance="outline">
             <mat-label>Last name</mat-label>
+
             <input
               matInput
               formControlName="lastName">
@@ -59,13 +61,27 @@
           </mat-hint>
         </mat-form-field>
 
+
+        @if (profileError()) {
+          <div class="form-error">
+            {{ profileError() }}
+          </div>
+        }
+
+        @if (profileSuccess()) {
+          <div class="form-success">
+            {{ profileSuccess() }}
+          </div>
+        }
+
+
         <div class="actions">
           <button
             mat-flat-button
             type="submit"
-            [disabled]="profileForm.invalid">
+            [disabled]="profileForm.invalid || profileSubmitting()">
 
-            Save changes
+            {{ profileSubmitting() ? 'Saving...' : 'Save changes' }}
           </button>
         </div>
 
@@ -80,6 +96,7 @@
 
     <mat-card-header class="profile-header">
       <mat-card-title>Change password</mat-card-title>
+
       <mat-card-subtitle>
         Update your account password
       </mat-card-subtitle>
@@ -100,7 +117,9 @@
             formControlName="currentPassword">
 
           @if (passwordForm.controls.currentPassword.hasError('required')) {
-            <mat-error>Current password is required</mat-error>
+            <mat-error>
+              Current password is required
+            </mat-error>
           }
         </mat-form-field>
 
@@ -114,7 +133,9 @@
             formControlName="newPassword">
 
           @if (passwordForm.controls.newPassword.hasError('required')) {
-            <mat-error>New password is required</mat-error>
+            <mat-error>
+              New password is required
+            </mat-error>
           }
         </mat-form-field>
 
@@ -141,13 +162,26 @@
         </mat-form-field>
 
 
+        @if (passwordError()) {
+          <div class="form-error">
+            {{ passwordError() }}
+          </div>
+        }
+
+        @if (passwordSuccess()) {
+          <div class="form-success">
+            {{ passwordSuccess() }}
+          </div>
+        }
+
+
         <div class="actions">
           <button
             mat-flat-button
             type="submit"
-            [disabled]="passwordForm.invalid">
+            [disabled]="passwordForm.invalid || passwordSubmitting()">
 
-            Change password
+            {{ passwordSubmitting() ? 'Changing...' : 'Change password' }}
           </button>
         </div>
 

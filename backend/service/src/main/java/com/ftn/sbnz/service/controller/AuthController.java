@@ -1,9 +1,11 @@
 package com.ftn.sbnz.service.controller;
 
+import com.ftn.sbnz.service.dto.ChangePasswordRequest;
 import com.ftn.sbnz.service.dto.LoginRequest;
 import com.ftn.sbnz.service.dto.LoginResponse;
 import com.ftn.sbnz.service.dto.RefreshRequest;
 import com.ftn.sbnz.service.dto.RegisterRequest;
+import com.ftn.sbnz.service.dto.UpdateProfileRequest;
 import com.ftn.sbnz.service.dto.UserResponse;
 import com.ftn.sbnz.model.models.User;
 import com.ftn.sbnz.service.repository.UserRepository;
@@ -22,7 +24,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +58,9 @@ public class AuthController {
 
   @Autowired
   private CustomUserDetailsService userDetailsService;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody LoginRequest authRequest, HttpServletResponse response) {
@@ -110,11 +117,6 @@ public class AuthController {
     }
   }
 
-  @GetMapping("/hi")
-  public String getHi(@RequestParam String param) {
-    return new String("hi!" + param);
-  }
-
   @PostMapping("/register")
   public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
 
@@ -131,35 +133,66 @@ public class AuthController {
     }
   }
 
-@PostMapping("/refresh")
-public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
-    try {
-        String username = jwtUtil.extractUsername(request.getRefreshToken());
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+  @PostMapping("/refresh")
+  public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
+      try {
+          String username = jwtUtil.extractUsername(request.getRefreshToken());
+          UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        if (!jwtUtil.validateToken(request.getRefreshToken(), userDetails)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid refresh token"));
-        }
+          if (!jwtUtil.validateToken(request.getRefreshToken(), userDetails)) {
+              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid refresh token"));
+          }
 
-        String newAccessToken = jwtUtil.generateToken(userDetails, 1000 * 60 * 60);
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired refresh token"));
-    }
-}
-  
-@GetMapping("/me")
-public ResponseEntity<?> me(Authentication authentication) {
-    if (authentication == null) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
-    }
-    User user = userService.findByEmail(authentication.getName()).orElse(null);
-    if (user == null) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
-    }
-    return ResponseEntity.ok(new UserResponse(
-        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
-    ));
-}
+          String newAccessToken = jwtUtil.generateToken(userDetails, 1000 * 60 * 60);
+          return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+      } catch (Exception e) {
+          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired refresh token"));
+      }
+  }
+    
+  @GetMapping("/me")
+  public ResponseEntity<?> me(Authentication authentication) {
+      if (authentication == null) {
+          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+      }
+      User user = userService.findByEmail(authentication.getName()).orElse(null);
+      if (user == null) {
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+      }
+      return ResponseEntity.ok(new UserResponse(
+          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
+      ));
+  }
+  @PutMapping("/profile")
+  public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request, Authentication authentication) {
+      User user = userService.findByEmail(authentication.getName()).orElse(null);
+      if (user == null) {
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+      }
 
+      user.setFirstName(request.getFirstName());
+      user.setLastName(request.getLastName());
+      userService.save(user);
+
+      return ResponseEntity.ok(new UserResponse(
+          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
+      ));
+  }
+
+  @PutMapping("/change-password")
+  public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+      User user = userService.findByEmail(authentication.getName()).orElse(null);
+      if (user == null) {
+          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+      }
+
+      if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+          return ResponseEntity.badRequest().body(Map.of("message", "Current password is incorrect"));
+      }
+
+      user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+      userService.save(user);
+
+      return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+  }
 }

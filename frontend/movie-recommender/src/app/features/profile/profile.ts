@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -40,6 +40,15 @@ export class ProfileComponent {
     confirmPassword: ['', Validators.required]
   });
 
+  profileSubmitting = signal(false);
+  passwordSubmitting = signal(false);
+
+  profileError = signal<string | null>(null);
+  profileSuccess = signal<string | null>(null);
+
+  passwordError = signal<string | null>(null);
+  passwordSuccess = signal<string | null>(null);
+
   constructor() {
     const user = this.currentUser();
 
@@ -68,11 +77,35 @@ export class ProfileComponent {
       return;
     }
 
+    this.profileSubmitting.set(true);
+    this.profileError.set(null);
+    this.profileSuccess.set(null);
+
     const data = this.profileForm.getRawValue();
 
-    console.log('Profile data:', data);
+    this.authService.updateProfile({
+      firstName: data.firstName,
+      lastName: data.lastName
+    }).subscribe({
+      next: (user) => {
+        this.profileSubmitting.set(false);
+        this.profileSuccess.set('Profile updated successfully.');
 
-    // We'll call the backend here later.
+        // Update the current user in AuthService if your
+        // AuthService supports doing so.
+      },
+      error: (err) => {
+        this.profileSubmitting.set(false);
+
+        const msg =
+          err.error?.message ??
+          (typeof err.error === 'string' ? err.error : null);
+
+        this.profileError.set(
+          msg ?? 'Failed to update profile. Please try again.'
+        );
+      }
+    });
   }
 
   changePassword(): void {
@@ -81,21 +114,47 @@ export class ProfileComponent {
       return;
     }
 
-    const { currentPassword, newPassword, confirmPassword } =
-      this.passwordForm.getRawValue();
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    } = this.passwordForm.getRawValue();
 
     if (newPassword !== confirmPassword) {
-      this.passwordForm.get('confirmPassword')?.setErrors({
+      this.passwordForm.controls.confirmPassword.setErrors({
         passwordMismatch: true
       });
+
       return;
     }
 
-    console.log('Change password:', {
+    this.passwordSubmitting.set(true);
+    this.passwordError.set(null);
+    this.passwordSuccess.set(null);
+
+    this.authService.changePassword({
       currentPassword,
       newPassword
-    });
+    }).subscribe({
+      next: () => {
+        this.passwordSubmitting.set(false);
+        this.passwordSuccess.set('Password changed successfully.');
 
-    // We'll call the backend here later.
+        this.passwordForm.reset();
+        this.passwordForm.markAsPristine();
+        this.passwordForm.markAsUntouched();
+      },
+      error: (err) => {
+        this.passwordSubmitting.set(false);
+
+        const msg =
+          err.error?.message ??
+          (typeof err.error === 'string' ? err.error : null);
+
+        this.passwordError.set(
+          msg ?? 'Failed to change password. Please try again.'
+        );
+      }
+    });
   }
 }

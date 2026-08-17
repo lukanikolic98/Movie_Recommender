@@ -58,6 +58,21 @@
   width: 100%;
 }
 
+.form-error,
+.form-success {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.form-error {
+  color: var(--mat-sys-error);
+}
+
+.form-success {
+  color: var(--mat-sys-primary);
+}
+
 .actions {
   display: flex;
   justify-content: flex-start;
