@@ -76,22 +76,20 @@
               </span>
             }
           </div>
+          @if (movie.genres.length > 0) {
+            <mat-chip-set class="genre-chips" aria-label="Genres">
+              @for (genre of movie.genres; track genre) {
+                <mat-chip>{{ genre }}</mat-chip>
+              }
+            </mat-chip-set>
+          }
         </div>
       </mat-card-header>
 
       <mat-card-content>
-
-        @if (movie.genres.length > 0) {
-          <mat-chip-set class="genre-chips" aria-label="Genres">
-            @for (genre of movie.genres; track genre) {
-              <mat-chip>{{ genre }}</mat-chip>
-            }
-          </mat-chip-set>
-        }
-
         <div class="actions">
           <button
-            mat-flat-button
+            mat-stroked-button
             [color]="movie.liked === true ? 'primary' : undefined"
             [disabled]="pendingAction() === 'like'"
             (click)="react(true)">
@@ -100,7 +98,7 @@
           </button>
 
           <button
-            mat-flat-button
+            mat-stroked-button
             [color]="movie.liked === false ? 'warn' : undefined"
             [disabled]="pendingAction() === 'dislike'"
             (click)="react(false)">
