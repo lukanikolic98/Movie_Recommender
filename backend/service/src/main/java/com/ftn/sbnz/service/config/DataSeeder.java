@@ -93,6 +93,7 @@ public class DataSeeder implements ApplicationRunner {
         movie.setTmdbVoteCount(parseInt(row.get("vote_count")));
         movie.setRuntime(parseInt(row.get("runtime")));
         movie.setReleaseDate(parseDate(row.get("release_date")));
+        movie.setPosterUrl(row.get("poster_path"));
 
         // ── director ──────────────────────────────────────────────────────────
         CreditData credit = credits.getOrDefault(tmdbId, new CreditData());
