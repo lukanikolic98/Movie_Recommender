@@ -64,6 +64,12 @@
                 {{ movie.reviewAverage.toFixed(1) }} / 10 · {{ movie.reviewCount }}
                 {{ movie.reviewCount === 1 ? 'review' : 'reviews' }}
               </span>
+            } @else {
+              <h3 class="rating-title">User reviews</h3>
+              <span class="rating-badge">
+                <mat-icon>star</mat-icon>
+                0 reviews
+              </span>
             }
 
             @if (movie.tmdbVoteAverage !== null) {

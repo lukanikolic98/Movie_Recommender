@@ -88,6 +88,9 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+        reviewRepository.flush();
+        // update cached average on the movie
+        updateReviewAverage(findMovie(movieId));
 
         return true;
     }
