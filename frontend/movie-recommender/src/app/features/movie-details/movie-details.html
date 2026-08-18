@@ -1,1 +1,323 @@
-<p>movie-details works!</p>
+<div class="movie-details-container">
+
+  @if (loading()) {
+    <div class="state-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  @else if (loadError()) {
+    <div class="state-container">
+      <p class="form-error">{{ loadError() }}</p>
+
+      <button
+        mat-flat-button
+        (click)="loadMovie()">
+        Try again
+      </button>
+    </div>
+  }
+
+  @else if (movie(); as movie) {
+
+    <button
+      mat-button
+      class="back-button"
+      (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+
+    <mat-card class="movie-card">
+
+      <mat-card-header class="movie-header">
+        <div class="poster">
+          @if (posterSrc()) {
+            <img [src]="posterSrc()" [alt]="movie.title">
+          } @else {
+            <div class="poster-placeholder">
+              <mat-icon>movie</mat-icon>
+            </div>
+          }
+        </div>
+
+        <div class="movie-heading">
+          <mat-card-title class="movie-title">{{ movie.title }}</mat-card-title>
+
+          <mat-card-subtitle>
+            @if (year()) {
+              <span>{{ year() }}</span>
+            }
+            @if (runtimeLabel()) {
+              <span> · {{ runtimeLabel() }}</span>
+            }
+            @if (movie.language) {
+              <span> · {{ movie.language.toUpperCase() }}</span>
+            }
+          </mat-card-subtitle>
+
+          <div class="ratings">
+            @if (movie.reviewAverage !== null) {
+              <h3 class="rating-title">User reviews</h3>
+              <span class="rating-badge">
+                <mat-icon>star</mat-icon>
+                {{ movie.reviewAverage.toFixed(1) }} / 10 · {{ movie.reviewCount }}
+                {{ movie.reviewCount === 1 ? 'review' : 'reviews' }}
+              </span>
+            }
+
+            @if (movie.tmdbVoteAverage !== null) {
+              <h3 class="rating-title">TMDB reviews</h3>
+              <span class="rating-badge muted">
+                TMDB {{ movie.tmdbVoteAverage.toFixed(1) }} / 10
+                @if (movie.tmdbVoteCount !== null) {
+                  · {{ movie.tmdbVoteCount }} votes
+                }
+              </span>
+            }
+          </div>
+          @if (movie.genres.length > 0) {
+            <mat-chip-set class="genre-chips" aria-label="Genres">
+              @for (genre of movie.genres; track genre) {
+                <mat-chip>{{ genre }}</mat-chip>
+              }
+            </mat-chip-set>
+          }
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="actions">
+          <button
+            mat-stroked-button
+            [color]="movie.liked === true ? 'primary' : undefined"
+            [disabled]="pendingAction() === 'like'"
+            (click)="react(true)">
+            <mat-icon>{{ movie.liked === true ? 'favorite' : 'favorite_border' }}</mat-icon>
+            Like
+          </button>
+
+          <button
+            mat-stroked-button
+            [color]="movie.liked === false ? 'warn' : undefined"
+            [disabled]="pendingAction() === 'dislike'"
+            (click)="react(false)">
+            <mat-icon>{{ movie.liked === false ? 'thumb_down' : 'thumb_down_off_alt' }}</mat-icon>
+            Dislike
+          </button>
+
+          <button
+            mat-stroked-button
+            [color]="movie.watchlisted ? 'accent' : undefined"
+            [disabled]="pendingAction() === 'watchlist'"
+            (click)="toggleWatchlist()">
+            <mat-icon>{{ movie.watchlisted ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+            {{ movie.watchlisted ? 'On watchlist' : 'Add to watchlist' }}
+          </button>
+
+          <button
+            mat-stroked-button
+            [color]="movie.watched ? 'accent' : undefined"
+            [disabled]="pendingAction() === 'watched'"
+            (click)="toggleWatched()">
+            <mat-icon>{{ movie.watched ? 'check_circle' : 'check_circle_outline' }}</mat-icon>
+            {{ movie.watched ? 'Watched' : 'Mark watched' }}
+          </button>
+        </div>
+
+        @if (actionError()) {
+          <div class="form-error">
+            {{ actionError() }}
+          </div>
+        }
+
+        <mat-divider></mat-divider>
+
+        <!-- Overview + Director/Cast, side by side -->
+        <div class="details-columns">
+
+          @if (movie.overview) {
+            <section class="movie-section overview-column">
+              <h3>Overview</h3>
+              <p>{{ movie.overview }}</p>
+            </section>
+          }
+
+          <section class="cast-column">
+            @if (movie.director) {
+              <div class="cast-block">
+                <h3>Director</h3>
+                <mat-list class="people-list">
+                  <mat-list-item>
+                    <div matListItemAvatar class="initials-avatar director-avatar">
+                      {{ initials(movie.director) }}
+                    </div>
+                    <span matListItemTitle>{{ movie.director }}</span>
+                  </mat-list-item>
+                </mat-list>
+              </div>
+            }
+
+            @if (movie.actors.length > 0) {
+              <div class="cast-block">
+                <h3>Top Cast</h3>
+                <mat-list class="people-list">
+                  @for (actor of visibleActors(); track actor) {
+                    <mat-list-item>
+                      <div matListItemAvatar class="initials-avatar">
+                        {{ initials(actor) }}
+                      </div>
+                      <span matListItemTitle>{{ actor }}</span>
+                    </mat-list-item>
+                  }
+                </mat-list>
+
+                @if (hasMoreActors()) {
+                  <button
+                    mat-button
+                    class="show-more-button"
+                    (click)="toggleActors()">
+                    <mat-icon>{{ actorsExpanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    {{ actorsExpanded() ? 'Show less' : 'Show all ' + movie.actors.length }}
+                  </button>
+                }
+              </div>
+            }
+          </section>
+
+        </div>
+
+        @if (movie.keywords.length > 0) {
+          <mat-divider></mat-divider>
+
+          <section class="movie-section">
+            <h3>Keywords</h3>
+            <mat-chip-set aria-label="Keywords">
+              @for (keyword of movie.keywords; track keyword) {
+                <mat-chip>{{ keyword }}</mat-chip>
+              }
+            </mat-chip-set>
+          </section>
+        }
+
+        <mat-divider></mat-divider>
+
+        <!-- Reviews -->
+        <section class="movie-section reviews-section">
+          <h3>Reviews</h3>
+
+          <div class="reviews-columns">
+
+            <div class="review-list-column">
+              @if (reviewsLoading()) {
+                <div class="state-container small">
+                  <mat-spinner diameter="32"></mat-spinner>
+                </div>
+              }
+
+              @else if (reviewsError()) {
+                <p class="form-error">{{ reviewsError() }}</p>
+              }
+
+              @else if (reviews().length === 0) {
+                <p class="empty-state">No reviews yet — be the first to write one.</p>
+              }
+
+              @else {
+                <div class="review-list">
+                  @for (review of reviews(); track review.id) {
+                    <div class="review-card">
+                      <div class="initials-avatar review-avatar">{{ initials(review.userName) }}</div>
+
+                      <div class="review-body">
+                        <div class="review-meta">
+                          <span class="review-author">{{ review.userName }}</span>
+
+                          <span class="review-rating-badge">
+                            <mat-icon>star</mat-icon>
+                            {{ review.rating }} / 10
+                          </span>
+
+                          <span class="review-date">{{ review.createdAt | date:'mediumDate' }}</span>
+
+                          @if (isOwnReview(review)) {
+                            <button
+                              mat-icon-button
+                              class="delete-review-button"
+                              matTooltip="Delete review"
+                              [disabled]="deletingReviewId() === review.id"
+                              (click)="deleteReview(review)">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          }
+                        </div>
+
+                        <p class="review-comment">{{ review.comment }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="review-form-column">
+              @if (isAuthenticated()) {
+                <form class="review-form" [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+
+                  <span class="form-label">Your rating</span>
+                  <div class="star-input">
+                    @for (star of ratingOptions; track star) {
+                      <button
+                        type="button"
+                        mat-icon-button
+                        (click)="setRating(star)">
+                        <mat-icon>
+                          {{ star <= reviewForm.controls.rating.value ? 'star' : 'star_border' }}
+                        </mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Write a review</mat-label>
+                    <textarea
+                      matInput
+                      rows="4"
+                      formControlName="comment">
+                    </textarea>
+                    @if (reviewForm.controls.comment.hasError('required')) {
+                      <mat-error>A comment is required</mat-error>
+                    }
+                    @if (reviewForm.controls.comment.hasError('minlength')) {
+                      <mat-error>Say a little more than that</mat-error>
+                    }
+                  </mat-form-field>
+
+                  @if (reviewSubmitError()) {
+                    <div class="form-error">{{ reviewSubmitError() }}</div>
+                  }
+
+                  <div class="form-actions">
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      type="submit"
+                      [disabled]="reviewForm.invalid || reviewSubmitting()">
+                      {{ reviewSubmitting() ? 'Posting...' : 'Post review' }}
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <p class="login-prompt">Log in to leave a review.</p>
+              }
+            </div>
+
+          </div>
+        </section>
+
+      </mat-card-content>
+
+    </mat-card>
+  }
+
+</div>

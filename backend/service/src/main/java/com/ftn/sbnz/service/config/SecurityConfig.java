@@ -68,6 +68,7 @@ public class SecurityConfig {
             .requestMatchers("/auth/me", "/auth/profile", "/auth/change-password").authenticated()
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
+            .requestMatchers("/api/movies/*/like", "/api/movies/*/dislike", "/api/movies/*/watched", "/api/movies/*/watchlist").authenticated()
             .requestMatchers("/api/movies/**").permitAll()
             .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())

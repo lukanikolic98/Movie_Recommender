@@ -3,6 +3,8 @@ mat-toolbar {
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--mat-sys-on-surface);
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface)
 
   h1 {
     font-size: 1.25rem;
