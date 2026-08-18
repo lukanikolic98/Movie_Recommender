@@ -1,0 +1,64 @@
+.login-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.custom-input {
+  min-width: 100%;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding-top: 24px;
+  > :first-child {
+    width: 25%;
+    min-width: 300px;
+  }
+}
+
+.header-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-title {
+  display: flex;
+}
+
+.error-message {
+  color: var(--mat-sys-error, #b3261e);
+  font-size: 0.875rem;
+  text-align: center;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.submit-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+
+  button,
+  a[mat-raised-button] {
+    padding: 8px 16px;
+    font-weight: 500;
+    border-radius: 8px;
+    text-transform: uppercase;
+    width: 100%;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}

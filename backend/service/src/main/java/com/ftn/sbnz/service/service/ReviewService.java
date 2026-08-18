@@ -36,27 +36,25 @@ public class ReviewService {
     // -- Add a review
     @Transactional
     public ReviewDto addReview(Long movieId, ReviewDto dto) {
-        User user = userService.getCurrentUser();
-        Movie movie = findMovie(movieId);
-
-        // one review per user per movie
-        if (reviewRepository.findByUserAndMovie(user, movie).isPresent()) {
-            System.out.println("Duplicate review detected");
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "You have already reviewed this movie");
-        }
-
         if (dto.getRating() < 1 || dto.getRating() > 10) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Rating must be between 1 and 10");
         }
 
-        Review review = new Review();
-        review.setUser(user);
-        review.setMovie(movie);
+        User user = userService.getCurrentUser();
+        Movie movie = findMovie(movieId);
+        Review review = reviewRepository
+        .findByUserAndMovie(user, movie)
+        .orElseGet(() -> {
+            Review newReview = new Review();
+            newReview.setUser(user);
+            newReview.setMovie(movie);
+            newReview.setCreatedAt(LocalDateTime.now());
+            return newReview;
+        });
+
         review.setComment(dto.getComment());
         review.setRating(dto.getRating());
-        review.setCreatedAt(LocalDateTime.now());
         review = reviewRepository.save(review);
 
         // update cached average on the movie
@@ -90,6 +88,9 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
+        reviewRepository.flush();
+        // update cached average on the movie
+        updateReviewAverage(findMovie(movieId));
 
         return true;
     }
@@ -98,6 +99,8 @@ public class ReviewService {
     private ReviewDto toDto(Review review) {
         ReviewDto dto = new ReviewDto();
         dto.setId(review.getId());
+        dto.setUserId(review.getUser().getId());
+        dto.setMovieId(review.getMovie().getId());
         dto.setComment(review.getComment());
         dto.setRating(review.getRating());
         dto.setCreatedAt(review.getCreatedAt());

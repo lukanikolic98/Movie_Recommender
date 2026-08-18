@@ -1,0 +1,75 @@
+<div class="login-container">
+  <mat-card class="example-card">
+    @if (!submitted()) {
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-card-header class="header-container">
+          <mat-card-title><h3 class="login-title">Register</h3></mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="login-form-container">
+          <mat-form-field class="custom-input">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" required />
+            @if (form.controls.email.hasError('required')) {
+              <mat-error>Email is required</mat-error>
+            } @else if (form.controls.email.hasError('email')) {
+              <mat-error>Enter a valid email</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="custom-input" hintLabel="Min 8 characters">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" required type="password" />
+            @if (form.controls.password.hasError('required')) {
+              <mat-error>Password is required</mat-error>
+            } @else if (form.controls.password.hasError('minlength')) {
+              <mat-error>Password must be at least 8 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="custom-input">
+            <mat-label>First name</mat-label>
+            <input matInput formControlName="firstName" required />
+            @if (form.controls.firstName.hasError('required')) {
+              <mat-error>First name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field class="custom-input">
+            <mat-label>Last name</mat-label>
+            <input matInput formControlName="lastName" required />
+            @if (form.controls.lastName.hasError('required')) {
+              <mat-error>Last name is required</mat-error>
+            }
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <p class="error-message">{{ errorMessage() }}</p>
+          }
+        </mat-card-content>
+        <mat-card-actions>
+          <div class="submit-container">
+            <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting()">
+              {{ isSubmitting() ? 'Registering...' : 'Register' }}
+            </button>
+            <p>
+              Already have an account?
+              <a routerLink="/login">Login</a>
+            </p>
+          </div>
+        </mat-card-actions>
+      </form>
+    } @else {
+      <mat-card-header class="header-container">
+        <mat-card-title><h3 class="login-title">Check your email</h3></mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="login-form-container">
+        <p>We've sent an activation link to your email address. Click it to activate your account, then log in.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <div class="submit-container">
+          <a mat-raised-button color="primary" routerLink="/login">Go to Login</a>
+        </div>
+      </mat-card-actions>
+    }
+  </mat-card>
+</div>

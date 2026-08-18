@@ -1,0 +1,28 @@
+<mat-toolbar>
+  <mat-icon>movie</mat-icon>
+  <h1>Movie Recommender</h1>
+  <span class="spacer"></span>
+
+  <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Home</a>
+  <a mat-button routerLink="/browse" routerLinkActive="active-link">Browse</a>
+
+  @if (isAuthenticated()) {
+    <a mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+      {{ currentUser()?.firstName }}
+    </a>
+    <mat-menu #userMenu="matMenu">
+      <a mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        <span>Profile</span>
+      </a>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <a mat-button routerLink="/login" routerLinkActive="active-link">Login</a>
+    <a mat-button routerLink="/register" routerLinkActive="active-link">Register</a>
+  }
+</mat-toolbar>
