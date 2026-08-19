@@ -1,16 +1,36 @@
+package rules;
+
 import com.ftn.sbnz.kjar.model.facts.UserFact;
 import com.ftn.sbnz.kjar.model.facts.MovieFact;
-import com.ftn.sbnz.kjar.model.ReviewedKeyword;
+import com.ftn.sbnz.kjar.model.facts.ReviewFact;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction.InteractionType;
 
-rule "Generate ReviewedKeyword facts"
-when
-    $user : UserFact($uid : id, $reviews : reviewedMovies)
-    // match a movie that the user reviewed
-    $movie : MovieFact($mid : movieId) 
-    eval($reviews.containsKey($mid))
-    $keyword : String() from $movie.keywords
-then
-    double rating = (Double) $user.getReviewedMovies().get($movie.getMovieId());
-    insert(new ReviewedKeyword($uid, $keyword, rating));
-    System.out.println("Generated ReviewedKeyword for user " + $uid + ", keyword " + $keyword + ", rating " + rating);
+// A1 – For each reviewed movie, create a reviewKeywordInreaction fact per keyword
+rule "Review Movie -> KeywordInteraction"
+agenda-group "A1"
+    when
+        $user : UserFact($userId : id)
+
+        $review : ReviewFact(
+            userId == $userId,
+            $movieId : movieId,
+            $rating : rating
+        )
+
+        $movie : MovieFact(
+            id == $movieId,
+            $keywords : keywords
+        )
+
+        $keyword : String() from $keywords
+    then
+        insert(new KeywordInteraction(
+            $userId,
+            $movieId,
+            $keyword,
+            $rating
+        ));
 end
+
+

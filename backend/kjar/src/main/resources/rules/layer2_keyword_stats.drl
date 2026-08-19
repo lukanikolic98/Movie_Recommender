@@ -1,29 +1,65 @@
-import com.ftn.sbnz.kjar.model.KeywordStats;
-import com.ftn.sbnz.kjar.model.LikedKeyword;
+package rules;
 
-rule "Aggregate KeywordStats per user"
-no-loop true
+import com.ftn.sbnz.kjar.model.facts.UserFact;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction.InteractionType;
+import com.ftn.sbnz.kjar.model.level_2.KeywordStats;
+
+import java.util.List;
+import java.util.Set;
+
+rule "Accumulate KeywordStats"
+agenda-group "A2"
 when
-    $uid : Long()
-    $kw  : String()
-    $count : Long() from accumulate(
-        LikedKeyword(userId == $uid, keyword == $kw),
-        count()
+    $user : UserFact($userId : id)
+
+    $interaction : KeywordInteraction(userId == $userId, $keyword : keyword)
+
+    not KeywordStats(userId == $userId, keyword == $keyword)
+
+    $likes : Long() from accumulate(
+        KeywordInteraction(
+            userId == $userId,
+            keyword == $keyword,
+            type == InteractionType.LIKE
+        ),
+        count(1)
     )
-        $count : Long() from accumulate(
-        LikedKeyword(userId == $uid, keyword == $kw),
-        count()
+
+    $dislikes : Long() from accumulate(
+        KeywordInteraction(
+            userId == $userId,
+            keyword == $keyword,
+            type == InteractionType.DISLIKE
+        ),
+        count(1)
     )
-    $avgRating : Double() from accumulate(
-        LikedKeyword(userId == $uid, keyword == $kw, rating != null, $r : rating),
-        init(double sum = 0; int cnt = 0; ),
-        action(sum += $r; cnt++;),
-        reverse(sum -= $r; cnt--;),
-        result(cnt > 0 ? sum/cnt : 0.0)
+
+    $ratings : List() from accumulate(
+        KeywordInteraction(
+            userId == $userId,
+            keyword == $keyword,
+            type == InteractionType.REVIEW,
+            $r : rating
+        ),
+        collectList($r)
     )
 then
-    System.out.println("KeywordStats built for user " + $uid + 
-                       ", keyword " + $kw + 
-                       ", count=" + $count);
-    insert(new KeywordStats($uid, $kw, $count.intValue()));
+    int reviewCount = $ratings.size();
+
+    double reviewAvg = reviewCount > 0
+        ? $ratings.stream()
+            .mapToInt(r -> (Integer) r)
+            .average()
+            .orElse(0.0)
+        : 0.0;
+
+    insert(new KeywordStats(
+        $userId,
+        $keyword,
+        $likes.intValue(),
+        $dislikes.intValue(),
+        reviewAvg,
+        reviewCount
+    ));
 end

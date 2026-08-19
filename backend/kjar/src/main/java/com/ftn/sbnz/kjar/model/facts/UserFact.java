@@ -1,41 +1,47 @@
 package com.ftn.sbnz.kjar.model.facts;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 
 public class UserFact implements Serializable {
-
   private Long id;
-  private String firstname;
-  private String lastname;
-  private Set<Long> likedMovieIds = new HashSet<>();
-  private Set<Long> dislikedMovieIds = new HashSet<>();
-  private Set<Long> watchedMovieIds = new HashSet<>();
+  private String firstName;
+  private String lastName;
+  private Set<Long> likedMovieIds;
+  private Set<Long> dislikedMovieIds;
+  private Set<Long> watchedMovieIds;
+  private Set<Long> watchlistedMovieIds;
+  private Set<String> preferredKeywords;
+  private Set<String> preferredGenres;
 
   public UserFact() {
   }
 
-  public UserFact(Long id, String firstname, String lastname,
-      Set<Long> likedMovieIds, Set<Long> dislikedMovieIds, Set<Long> watchedMovieIds) {
+  public UserFact(Long id, String firstName, String lastName,
+      Set<Long> likedMovieIds, Set<Long> dislikedMovieIds,
+      Set<Long> watchedMovieIds, Set<Long> watchlistedMovieIds,
+      Set<String> preferredKeywords, Set<String> preferredGenres) {
     this.id = id;
-    this.firstname = firstname;
-    this.lastname = lastname;
-    this.likedMovieIds = likedMovieIds != null ? likedMovieIds : new HashSet<>();
-    this.dislikedMovieIds = dislikedMovieIds != null ? dislikedMovieIds : new HashSet<>();
-    this.watchedMovieIds = watchedMovieIds != null ? watchedMovieIds : new HashSet<>();
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.likedMovieIds = likedMovieIds;
+    this.dislikedMovieIds = dislikedMovieIds;
+    this.watchedMovieIds = watchedMovieIds;
+    this.watchlistedMovieIds = watchlistedMovieIds;
+    this.preferredKeywords = preferredKeywords;
+    this.preferredGenres = preferredGenres;
   }
 
   public Long getId() {
     return id;
   }
 
-  public String getFirstname() {
-    return firstname;
+  public String getFirstName() {
+    return firstName;
   }
 
-  public String getLastname() {
-    return lastname;
+  public String getLastName() {
+    return lastName;
   }
 
   public Set<Long> getLikedMovieIds() {
@@ -50,14 +56,29 @@ public class UserFact implements Serializable {
     return watchedMovieIds;
   }
 
+  public Set<Long> getWatchlistedMovieIds() {
+    return watchlistedMovieIds;
+  }
+
+  public Set<String> getPreferredKeywords() {
+    return preferredKeywords;
+  }
+
+  public Set<String> getPreferredGenres() {
+    return preferredGenres;
+  }
+
   @Override
   public String toString() {
-    return "UserFact{" +
-        "id=" + id +
-        ", firstname='" + firstname + '\'' +
-        ", likedMovies=" + likedMovieIds +
-        ", dislikedMovies=" + dislikedMovieIds +
-        ", watchedMovies=" + watchedMovieIds +
+    return "UserFact{\n" +
+        "  id=" + id + "\n" +
+        "  name='" + firstName + " " + lastName + "'\n" +
+        "  likedMovieIds=" + likedMovieIds + "\n" +
+        "  dislikedMovieIds=" + dislikedMovieIds + "\n" +
+        "  watchedMovieIds=" + watchedMovieIds + "\n" +
+        "  watchlistedMovieIds=" + watchlistedMovieIds + "\n" +
+        "  preferredKeywords=" + preferredKeywords + "\n" +
+        "  preferredGenres=" + preferredGenres + "\n" +
         '}';
   }
 }

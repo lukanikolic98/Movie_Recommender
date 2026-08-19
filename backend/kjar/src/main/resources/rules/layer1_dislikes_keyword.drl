@@ -1,13 +1,23 @@
+package rules;
+
 import com.ftn.sbnz.kjar.model.facts.UserFact;
 import com.ftn.sbnz.kjar.model.facts.MovieFact;
-import com.ftn.sbnz.kjar.model.DislikedKeyword;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction;
+import com.ftn.sbnz.kjar.model.level_1.KeywordInteraction.InteractionType;
 
-rule "Generate DislikedKeyword facts"
-when
-    $user : UserFact($uid : id, $dislikedMovieIds : dislikedMovieIds)
-    $movie : MovieFact(movieId memberOf $dislikedMovieIds)
-    $keyword : String() from $movie.keywords
-then
-    insert(new DislikedKeyword($uid, $keyword));
-    System.out.println("Generated DislikedKeyword for " + $keyword);
+// A1 – For each disliked movie, create a dislike KeywordInteraction fact per keyword
+rule "Dislike Movie -> KeywordInteraction"
+agenda-group "A1"
+    when
+        $user : UserFact($userId : id)
+        $movie : MovieFact($movieId : id)
+        eval($user.getDislikedMovieIds().contains($movieId))
+        $keyword : String() from $movie.getKeywords()
+    then
+        insert(new KeywordInteraction(
+            $userId,
+            $movieId,
+            $keyword,
+            InteractionType.DISLIKE
+        ));
 end

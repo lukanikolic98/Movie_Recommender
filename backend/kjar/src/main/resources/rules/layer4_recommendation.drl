@@ -1,32 +1,103 @@
-import com.ftn.sbnz.kjar.model.Recommendation;
-import com.ftn.sbnz.kjar.model.MovieStats;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
+package rules;
 
-rule "Build Recommendation"
-no-loop true
+import com.ftn.sbnz.kjar.model.facts.UserFact;
+import com.ftn.sbnz.kjar.model.facts.MovieFact;
+import com.ftn.sbnz.kjar.model.level_3.MovieStats;
+import com.ftn.sbnz.kjar.model.level_4.Recommendation;
+import java.util.List;
+
+
+agenda-group "A4"
+
+// A4 - Base recommendation from MovieStats
+rule "Create Recommendation"
 when
-    $rec : Recommendation($uid : userId)
-    $statsObjects : List() from accumulate(
-        MovieStats(userId == $uid, $ms : this),
-        collectList($ms)
+    $stats : MovieStats(
+        $userId : userId,
+        $movieId : movieId,
+        $title : title,
+        $score : score
+    )
+
+    not Recommendation(
+        userId == $userId,
+        movieId == $movieId
     )
 then
-    // cast to proper type
-    List<MovieStats> $stats = new ArrayList<>();
-    for (Object obj : $statsObjects) {
-        $stats.add((MovieStats) obj);
-    }
+    insert(new Recommendation($userId, $movieId, $title, $score));
+end
 
-    // sort descending by score
-    $stats.sort(Comparator.comparingDouble(MovieStats::getScore).reversed());
+// A4 - Boost if movie contains a preferred keyword (+5 per match)
+rule "Boost Preferred Keyword"
+when
+    $user  : UserFact($userId : id, $prefKeywords : preferredKeywords)
 
-    // add to recommendation
-    for (MovieStats ms : $stats) {
-        $rec.add(ms);
-    }
+    $rec   : Recommendation(
+        userId == $userId,
+        keywordBoosted == false
+    )
 
+    $movie : MovieFact(
+        id == $rec.movieId,
+        $keywords : keywords
+    )
+
+    $kw : String() from $keywords
+
+    eval($prefKeywords != null && $prefKeywords.contains($kw))
+then
+    $rec.setScore($rec.getScore() + 5.0);
+    $rec.setKeywordBoosted(true);
     update($rec);
-    System.out.println("Recommendation built for user " + $rec);
+end
+
+// A4 - Boost if movie matches a preferred genre (+5 per match)
+rule "Boost Preferred Genre"
+when
+    $user  : UserFact($userId : id, $prefGenres : preferredGenres)
+
+    $rec   : Recommendation(
+        userId == $userId,
+        genreBoosted == false
+    )
+
+    $movie : MovieFact(
+        id == $rec.movieId,
+        $genres : genres
+    )
+
+    $g : String() from $genres
+
+    eval($prefGenres != null && $prefGenres.contains($g))
+then
+    $rec.setScore($rec.getScore() + 5.0);
+    $rec.setGenreBoosted(true);
+    update($rec);
+end
+
+// A4 – Boost if movie is on watchlist (+3)
+rule "Boost Watchlisted"
+when
+    $user : UserFact($userId : id, $watchlisted : watchlistedMovieIds)
+
+    $rec : Recommendation(
+        userId == $userId,
+        movieId memberOf $watchlisted,
+        watchlistBoosted == false
+    )
+then
+    $rec.setScore($rec.getScore() + 3.0);
+    $rec.setWatchlistBoosted(true);
+    update($rec);
+end
+
+rule "DEBUG Recommendation"
+when
+    $r : Recommendation()
+then
+    System.out.println(
+        "REC -> user=" + $r.getUserId() +
+        " movie=" + $r.getMovieId() +
+        " score=" + $r.getScore()
+    );
 end

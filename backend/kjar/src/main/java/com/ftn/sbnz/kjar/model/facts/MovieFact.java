@@ -4,72 +4,59 @@ import java.io.Serializable;
 import java.util.List;
 
 public class MovieFact implements Serializable {
-
-  private Long movieId;
+  private Long id;
   private String title;
   private List<String> keywords;
-  private double averageRating;
   private List<String> genres;
+  private Double tmdbVoteAverage;
+  private Double reviewAverage;
 
   public MovieFact() {
   }
 
-  public MovieFact(Long movieId, String title, List<String> keywords, double averageRating, List<String> genres) {
-    this.movieId = movieId;
+  public MovieFact(Long id, String title, List<String> keywords,
+      List<String> genres, Double tmdbVoteAverage, Double reviewAverage) {
+    this.id = id;
     this.title = title;
     this.keywords = keywords;
-    this.averageRating = averageRating;
     this.genres = genres;
+    this.tmdbVoteAverage = tmdbVoteAverage;
+    this.reviewAverage = reviewAverage;
   }
 
-  public Long getMovieId() {
-    return movieId;
-  }
-
-  public void setMovieId(Long movieId) {
-    this.movieId = movieId;
+  public Long getId() {
+    return id;
   }
 
   public String getTitle() {
     return title;
   }
 
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
   public List<String> getKeywords() {
     return keywords;
-  }
-
-  public void setKeywords(List<String> keywords) {
-    this.keywords = keywords;
-  }
-
-  public double getAverageRating() {
-    return averageRating;
-  }
-
-  public void setAverageRating(double averageRating) {
-    this.averageRating = averageRating;
   }
 
   public List<String> getGenres() {
     return genres;
   }
 
-  public void setGenre(List<String> genres) {
-    this.genres = genres;
+  public Double getTmdbVoteAverage() {
+    return tmdbVoteAverage;
+  }
+
+  public Double getReviewAverage() {
+    return reviewAverage;
   }
 
   @Override
   public String toString() {
-    return "MovieFact{" +
-        "movieId=" + movieId +
-        ", title='" + title + '\'' +
-        ", keywords=" + keywords +
-        ", averageRating=" + averageRating +
-        ", genre='" + genres + '\'' +
+    return "MovieFact{\n" +
+        "  id=" + id + "\n" +
+        "  title='" + title + "'\n" +
+        "  keywords=" + keywords + "\n" +
+        "  genres=" + genres + "\n" +
+        "  tmdbVoteAverage=" + tmdbVoteAverage + "\n" +
+        "  reviewAverage=" + reviewAverage + "\n" +
         '}';
   }
 }

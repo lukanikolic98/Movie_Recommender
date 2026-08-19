@@ -21,7 +21,7 @@ public class UserMovieStatusService {
     private final UserService userService;
     private final MoviesService moviesService;
 
-    // ── find or create a status row for (user, movie)
+    // -- find or create a status row for (user, movie)
     private UserMovieStatus getOrCreate(User user, Movie movie) {
         return statusRepository.findByUserAndMovie(user, movie)
                 .orElseGet(() -> {
@@ -37,7 +37,7 @@ public class UserMovieStatusService {
                 .orElseThrow(() -> new RuntimeException("Movie not found: " + id));
     }
 
-    // ── like / dislike 
+    // -- like / dislike
     // reaction: true = like, false = dislike
     // calling the same reaction twice toggles it off (null)
     @Transactional
@@ -57,7 +57,7 @@ public class UserMovieStatusService {
         return moviesService.toDto(movie, user);
     }
 
-    // ── watchlist
+    // -- watchlist
     // works as
     @Transactional
     public MovieDto toggleWatchlist(Long movieId) {
@@ -72,7 +72,7 @@ public class UserMovieStatusService {
         return moviesService.toDto(movie, user);
     }
 
-    // ── mark watched
+    // -- mark watched
     // works as a toggle
     @Transactional
     public MovieDto toggleWatched(Long movieId) {

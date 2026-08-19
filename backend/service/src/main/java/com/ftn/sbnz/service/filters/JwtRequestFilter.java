@@ -35,15 +35,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     String path = request.getRequestURI();
-boolean isPublicAuthPath = path.equals("/auth/login")
-    || path.equals("/auth/register")
-    || path.equals("/auth/refresh")
-    || path.startsWith("/auth/confirm-registration");
+    boolean isPublicAuthPath = path.equals("/auth/login")
+        || path.equals("/auth/register")
+        || path.equals("/auth/refresh")
+        || path.startsWith("/auth/confirm-registration");
 
-if (isPublicAuthPath || path.startsWith("/h2-console") || path.startsWith("/api/movies/recommendation")) {
-  chain.doFilter(request, response);
-  return;
-}
+    if (isPublicAuthPath || path.startsWith("/h2-console")) {
+      chain.doFilter(request, response);
+      return;
+    }
 
     final String authorizationHeader = request.getHeader("Authorization");
 

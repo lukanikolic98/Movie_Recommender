@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class RecommendationRequestDto {
   private List<String> keywords;
-  private List<String> categories;
+  private List<String> genres;
 }

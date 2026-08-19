@@ -68,17 +68,18 @@ public class SecurityConfig {
             .requestMatchers("/auth/me", "/auth/profile", "/auth/change-password").authenticated()
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
-            .requestMatchers("/api/movies/*/like", "/api/movies/*/dislike", "/api/movies/*/watched", "/api/movies/*/watchlist").authenticated()
+            .requestMatchers("/api/movies/*/like", "/api/movies/*/dislike", "/api/movies/*/watched",
+                "/api/movies/*/watchlist", "/api/movies/recommendations")
+            .authenticated()
             .requestMatchers("/api/movies/**").permitAll()
             .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())
         .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
         .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, authException) -> {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-        response.setContentType("application/json");
-        response.getWriter().write("{\"message\":\"Unauthorized\"}");
-    })
-)
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+          response.setContentType("application/json");
+          response.getWriter().write("{\"message\":\"Unauthorized\"}");
+        }))
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider());
 
@@ -98,5 +99,5 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     return source;
-}
+  }
 }
