@@ -99,12 +99,12 @@ public class AuthController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     } catch (DisabledException e) {
       return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(Map.of(
-                "message",
-                "Account not yet activated. Please check your email for the activation link."
-            ));
-}  }
+          .status(HttpStatus.FORBIDDEN)
+          .body(Map.of(
+              "message",
+              "Account not yet activated. Please check your email for the activation link."));
+    }
+  }
 
   @GetMapping("/confirm-registration/{token}")
   public ResponseEntity<?> confirmRegistration(@PathVariable String token) {
@@ -135,64 +135,63 @@ public class AuthController {
 
   @PostMapping("/refresh")
   public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
-      try {
-          String username = jwtUtil.extractUsername(request.getRefreshToken());
-          UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+    try {
+      String username = jwtUtil.extractUsername(request.getRefreshToken());
+      UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-          if (!jwtUtil.validateToken(request.getRefreshToken(), userDetails)) {
-              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid refresh token"));
-          }
-
-          String newAccessToken = jwtUtil.generateToken(userDetails, 1000 * 60 * 60);
-          return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
-      } catch (Exception e) {
-          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired refresh token"));
+      if (!jwtUtil.validateToken(request.getRefreshToken(), userDetails)) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid refresh token"));
       }
+
+      String newAccessToken = jwtUtil.generateToken(userDetails, 1000 * 60 * 60);
+      return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or expired refresh token"));
+    }
   }
-    
+
   @GetMapping("/me")
   public ResponseEntity<?> me(Authentication authentication) {
-      if (authentication == null) {
-          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
-      }
-      User user = userService.findByEmail(authentication.getName()).orElse(null);
-      if (user == null) {
-          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
-      }
-      return ResponseEntity.ok(new UserResponse(
-          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
-      ));
+    if (authentication == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+    }
+    User user = userService.findByEmail(authentication.getName()).orElse(null);
+    if (user == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+    }
+    return ResponseEntity.ok(new UserResponse(
+        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()));
   }
+
   @PutMapping("/profile")
   public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request, Authentication authentication) {
-      User user = userService.findByEmail(authentication.getName()).orElse(null);
-      if (user == null) {
-          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
-      }
+    User user = userService.findByEmail(authentication.getName()).orElse(null);
+    if (user == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+    }
 
-      user.setFirstName(request.getFirstName());
-      user.setLastName(request.getLastName());
-      userService.save(user);
+    user.setFirstName(request.getFirstName());
+    user.setLastName(request.getLastName());
+    userService.save(user);
 
-      return ResponseEntity.ok(new UserResponse(
-          user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()
-      ));
+    return ResponseEntity.ok(new UserResponse(
+        user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().toString()));
   }
 
   @PutMapping("/change-password")
   public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
-      User user = userService.findByEmail(authentication.getName()).orElse(null);
-      if (user == null) {
-          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
-      }
+    User user = userService.findByEmail(authentication.getName()).orElse(null);
+    if (user == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found"));
+    }
 
-      if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-          return ResponseEntity.badRequest().body(Map.of("message", "Current password is incorrect"));
-      }
+    if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+      return ResponseEntity.badRequest().body(Map.of("message", "Current password is incorrect"));
+    }
 
-      user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-      userService.save(user);
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    userService.save(user);
 
-      return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
   }
 }

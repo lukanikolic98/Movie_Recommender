@@ -16,8 +16,7 @@ public class RecommendationDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class RecommendedMovieDto {
-        private Long movieId;
-        private String title;
+        private MovieDto movie;
         private double score;
     }
 }

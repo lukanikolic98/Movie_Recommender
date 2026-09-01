@@ -1,0 +1,208 @@
+:host {
+    display: block;
+}
+
+.hero {
+    position: relative;
+    min-height: calc(79vh - 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #12132b 0%, #21245e 100%);
+    padding: 64px 24px;
+}
+
+// ── Ambient glow (the one signature ambient element)
+
+.hero-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.glow-gold {
+    width: 480px;
+    height: 480px;
+    background: var(--mat-sys-primary);
+    top: -140px;
+    left: -100px;
+    animation: drift-gold 22s ease-in-out infinite;
+}
+
+.glow-coral {
+    width: 420px;
+    height: 420px;
+    background: #ff6b7a;
+    bottom: -160px;
+    right: -110px;
+    animation: drift-coral 26s ease-in-out infinite;
+}
+
+@keyframes drift-gold {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(60px, 40px);
+    }
+}
+
+@keyframes drift-coral {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(-50px, -30px);
+    }
+}
+
+// Subtle film-grain texture (SVG turbulence noise), nodding to actual film
+// stock rather than a literal reel/clapperboard icon.
+.hero-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+// ── Content
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 850px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+}
+
+.hero-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: #f5f3ee;
+    margin: 0 0 20px;
+}
+
+.line {
+    display: block;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.line-1 {
+    animation-delay: 0.1s;
+}
+
+.line-2 {
+    animation-delay: 0.3s;
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #a6a8d6;
+    margin: 0 0 32px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.5s;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.7s;
+    a {
+        text-decoration: none;
+    }
+}
+
+@keyframes rise {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cta-primary {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+    border: 1px solid var(--mat-sys-primary);
+    font-weight: 400;
+    font-size: 16px;
+    padding: 0 28px;
+    height: 48px;
+    line-height: 48px;
+    border-radius: 999px;
+    transition: transform 0.2s ease, border 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        border: 1px solid var(--mat-sys-on-primary);
+    }
+}
+
+.cta-secondary {
+    border: 1.5px solid rgba(245, 243, 238, 0.35) !important;
+    color: #f5f3ee !important;
+    font-weight: 600;
+    font-weight: 400;
+    font-size: 16px;
+    padding: 0 28px;
+    height: 48px;
+    line-height: 48px;
+    border-radius: 999px;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: #f5f3ee !important;
+        background: rgba(245, 243, 238, 0.08);
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .cta-primary,
+    .cta-secondary {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .glow-gold,
+    .glow-coral,
+    .line,
+    .hero-subtitle,
+    .hero-actions {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

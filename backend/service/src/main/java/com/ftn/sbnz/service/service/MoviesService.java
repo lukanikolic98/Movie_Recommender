@@ -11,9 +11,11 @@ import com.ftn.sbnz.kjar.model.level_4.Recommendation;
 import com.ftn.sbnz.model.models.*;
 import com.ftn.sbnz.service.dto.MovieDto;
 import com.ftn.sbnz.service.dto.MovieSearchResultDto;
+import com.ftn.sbnz.service.dto.PopularKeywordDto;
 import com.ftn.sbnz.service.dto.RecommendationDto;
 import com.ftn.sbnz.service.repository.MovieRepository;
 import com.ftn.sbnz.service.repository.UserMovieStatusRepository;
+import com.ftn.sbnz.service.repository.UserRepository;
 import com.ftn.sbnz.service.repository.spec.MovieSpecifications;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,6 +48,7 @@ public class MoviesService {
         private final UserMovieStatusRepository userMovieStatusRepository;
         private final UserService userService;
         private final KieContainer kieContainer;
+        private final UserRepository userRepository;
 
         // -- Get all movies
         public List<MovieDto> getAllMovies() {
@@ -180,34 +185,98 @@ public class MoviesService {
                 return dto;
         }
 
-        // Generate recommendations
+        public List<PopularKeywordDto> getPopularKeywords(int limit) {
+                KieSession kieSession = kieContainer.newKieSession("recommendationSession");
+
+                try {
+                        // -- UserFacts: one per user, seeded only with what they liked.
+                        // Dislikes/watched/watchlisted/reviews/preferred keywords & genres
+                        // don't factor into global keyword popularity, so left empty.
+                        userRepository.findAll().forEach(user -> {
+                                Set<Long> liked = user.getMovieStatuses().stream()
+                                                .filter(s -> Boolean.TRUE.equals(s.getReaction()))
+                                                .map(s -> s.getMovie().getId())
+                                                .collect(Collectors.toSet());
+
+                                if (liked.isEmpty()) {
+                                        return; // nothing to contribute
+                                }
+
+                                kieSession.insert(new UserFact(
+                                                user.getId(), user.getFirstName(), user.getLastName(),
+                                                liked, Set.of(), Set.of(), Set.of(),
+                                                Set.of(), Set.of()));
+                        });
+
+                        // -- MovieFacts (shared catalog, same as generateRecommendations)
+                        movieRepository.findAll().forEach(movie -> kieSession.insert(new MovieFact(
+                                        movie.getId(),
+                                        movie.getTitle(),
+                                        movie.getKeywords().stream().map(Keyword::getName).collect(Collectors.toList()),
+                                        movie.getGenres().stream().map(Genre::getName).collect(Collectors.toList()),
+                                        movie.getTmdbVoteAverage(),
+                                        movie.getReviewAverage())));
+
+                        // ── Fire rules A1 → A2 only ──────────────────────────────────
+                        kieSession.getAgenda().getAgendaGroup("A1").setFocus();
+                        kieSession.fireAllRules();
+
+                        kieSession.getAgenda().getAgendaGroup("A2").setFocus();
+                        kieSession.fireAllRules();
+
+                        // -- Aggregate every user's per-keyword KeywordStats into global counts
+                        Map<String, Integer> likesByKeyword = kieSession.getObjects(o -> o instanceof KeywordStats)
+                                        .stream()
+                                        .map(o -> (KeywordStats) o)
+                                        .collect(Collectors.groupingBy(
+                                                        KeywordStats::getKeyword,
+                                                        Collectors.summingInt(KeywordStats::getLikes)));
+
+                        return likesByKeyword.entrySet().stream()
+                                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                                        .limit(limit)
+                                        .map(e -> new PopularKeywordDto(e.getKey(), e.getValue()))
+                                        .collect(Collectors.toList());
+
+                } finally {
+                        kieSession.dispose();
+                }
+        }
+
         public List<RecommendationDto.RecommendedMovieDto> generateRecommendations(
-                        List<String> preferredKeywords, List<String> preferredGenres) {
+                        List<String> preferredKeywords, List<String> preferredGenres, boolean useHistory) {
 
                 User user = userService.getCurrentUser();
                 KieSession kieSession = kieContainer.newKieSession("recommendationSession");
 
                 try {
                         // -- UserFact
-                        Set<Long> liked = user.getMovieStatuses().stream()
-                                        .filter(s -> Boolean.TRUE.equals(s.getReaction()))
-                                        .map(s -> s.getMovie().getId())
-                                        .collect(Collectors.toSet());
+                        Set<Long> liked = Set.of();
+                        Set<Long> disliked = Set.of();
+                        Set<Long> watched = Set.of();
+                        Set<Long> watchlisted = Set.of();
 
-                        Set<Long> disliked = user.getMovieStatuses().stream()
-                                        .filter(s -> Boolean.FALSE.equals(s.getReaction()))
-                                        .map(s -> s.getMovie().getId())
-                                        .collect(Collectors.toSet());
+                        if (useHistory) {
+                                liked = user.getMovieStatuses().stream()
+                                                .filter(s -> Boolean.TRUE.equals(s.getReaction()))
+                                                .map(s -> s.getMovie().getId())
+                                                .collect(Collectors.toSet());
 
-                        Set<Long> watched = user.getMovieStatuses().stream()
-                                        .filter(UserMovieStatus::isWatched)
-                                        .map(s -> s.getMovie().getId())
-                                        .collect(Collectors.toSet());
+                                disliked = user.getMovieStatuses().stream()
+                                                .filter(s -> Boolean.FALSE.equals(s.getReaction()))
+                                                .map(s -> s.getMovie().getId())
+                                                .collect(Collectors.toSet());
 
-                        Set<Long> watchlisted = user.getMovieStatuses().stream()
-                                        .filter(UserMovieStatus::isWatchlisted)
-                                        .map(s -> s.getMovie().getId())
-                                        .collect(Collectors.toSet());
+                                watched = user.getMovieStatuses().stream()
+                                                .filter(UserMovieStatus::isWatched)
+                                                .map(s -> s.getMovie().getId())
+                                                .collect(Collectors.toSet());
+
+                                watchlisted = user.getMovieStatuses().stream()
+                                                .filter(UserMovieStatus::isWatchlisted)
+                                                .map(s -> s.getMovie().getId())
+                                                .collect(Collectors.toSet());
+                        }
 
                         Set<String> prefKeywords = preferredKeywords != null
                                         ? new HashSet<>(preferredKeywords)
@@ -222,10 +291,12 @@ public class MoviesService {
                                         prefKeywords, prefGenres));
 
                         // -- ReviewFacts
-                        user.getReviews().forEach(review -> kieSession.insert(new ReviewFact(
-                                        user.getId(),
-                                        review.getMovie().getId(),
-                                        review.getRating())));
+                        if (useHistory) {
+                                user.getReviews().forEach(review -> kieSession.insert(new ReviewFact(
+                                                user.getId(),
+                                                review.getMovie().getId(),
+                                                review.getRating())));
+                        }
 
                         // -- MovieFacts
                         movieRepository.findAll().forEach(movie -> kieSession.insert(new MovieFact(
@@ -283,8 +354,8 @@ public class MoviesService {
                                                 .orElse(null);
 
                                 if (existing != null) {
-                                        existing.setLikes(existing.getLikes() + 5); // TODO: add a setter to drools
-                                                                                    // model
+                                        existing.setLikes(existing.getLikes() + 5);
+
                                         kieSession.update(kieSession.getFactHandle(existing), existing);
                                 } else {
                                         kieSession.insert(new KeywordStats(user.getId(), keyword, 5, 0, 0, 0));
@@ -310,8 +381,11 @@ public class MoviesService {
                                         .map(obj -> (Recommendation) obj)
                                         .filter(r -> r.getUserId().equals(user.getId()))
                                         .sorted(Comparator.comparingDouble(Recommendation::getScore).reversed())
-                                        .map(r -> new RecommendationDto.RecommendedMovieDto(
-                                                        r.getMovieId(), r.getTitle(), r.getScore()))
+                                        .map(r -> movieRepository.findById(r.getMovieId())
+                                                        .map(movie -> new RecommendationDto.RecommendedMovieDto(
+                                                                        toDto(movie, user), r.getScore()))
+                                                        .orElse(null))
+                                        .filter(Objects::nonNull)
                                         .collect(Collectors.toList());
 
                 } finally {

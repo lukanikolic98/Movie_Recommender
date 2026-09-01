@@ -46,7 +46,7 @@ when
 
     eval($prefKeywords != null && $prefKeywords.contains($kw))
 then
-    $rec.setScore($rec.getScore() + 5.0);
+    $rec.setScore($rec.getScore() + 0.0);
     $rec.setKeywordBoosted(true);
     update($rec);
 end
@@ -70,8 +70,7 @@ when
 
     eval($prefGenres != null && $prefGenres.contains($g))
 then
-    $rec.setScore($rec.getScore() + 5.0);
-    $rec.setGenreBoosted(true);
+    $rec.setScore($rec.getScore() + 10.0);
     update($rec);
 end
 
