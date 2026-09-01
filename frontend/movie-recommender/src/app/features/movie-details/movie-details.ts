@@ -247,7 +247,7 @@ export class MovieDetailsComponent {
     this.reviewsService.addReview(id, { comment, rating }).subscribe({
       next: () => {
         this.reviewSubmitting.set(false);
-        this.reviewForm.reset({ comment: '', rating: 5 });
+        this.reviewForm.reset({ comment: '', rating: 8 });
         this.loadReviews();
         this.loadMovie(); // keep reviewAverage/reviewCount in sync
       },

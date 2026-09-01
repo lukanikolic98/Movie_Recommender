@@ -43,6 +43,10 @@ public class KeywordStats implements Serializable {
     return likes;
   }
 
+  public void setLikes(int likes) {
+    this.likes = likes;
+  }
+
   public int getDislikes() {
     return dislikes;
   }

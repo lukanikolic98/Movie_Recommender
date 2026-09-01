@@ -3,7 +3,7 @@ import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/home/home').then(m => m.HomeComponent) },
-  { path: 'browse', loadComponent: () => import('./features/browse/browse').then(m => m.BrowseComponent) },
+  { path: 'browse', loadComponent: () => import('./features/browse/browse-movies').then(m => m.BrowseMoviesComponent) },
   { path: 'movie/:id', loadComponent: () => import('./features/movie-details/movie-details').then(m => m.MovieDetailsComponent) },
   { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent) },

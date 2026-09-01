@@ -1,0 +1,170 @@
+<div class="browse-container">
+
+  <div class="search-row">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search movies</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        [formControl]="searchControl"
+        placeholder="e.g. Toy Story">
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      color="primary"
+      class="search-button"
+      (click)="onFilterChange()">
+      Search
+    </button>
+  </div>
+
+  <div class="filters-row">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Genre</mat-label>
+      <mat-select
+        [value]="genre()"
+        (selectionChange)="genre.set($event.value); onFilterChange()">
+        <mat-option value="">All</mat-option>
+        @for (g of genres; track g) {
+          <mat-option [value]="g">{{ g }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Rating</mat-label>
+      <mat-select
+        [value]="minRating()"
+        (selectionChange)="minRating.set($event.value); onFilterChange()">
+        <mat-option [value]="0">All</mat-option>
+        @for (r of ratingOptions; track r) {
+          <mat-option [value]="r">{{ r }}+</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Year</mat-label>
+      <mat-select
+        [value]="year()"
+        (selectionChange)="year.set($event.value); onFilterChange()">
+        <mat-option [value]="0">All</mat-option>
+        @for (y of years(); track y) {
+          <mat-option [value]="y">{{ y }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Language</mat-label>
+      <mat-select
+        [value]="language()"
+        (selectionChange)="language.set($event.value); onFilterChange()">
+        <mat-option value="">All</mat-option>
+        @for (l of languageOptions; track l.code) {
+          <mat-option [value]="l.code">{{ l.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Order By</mat-label>
+      <mat-select
+        [value]="sortBy()"
+        (selectionChange)="sortBy.set($event.value); onFilterChange()">
+        @for (s of sortOptions; track s.value) {
+          <mat-option [value]="s.value">{{ s.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+  </div>
+
+  @if (loading()) {
+    <div class="state-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  @else if (error()) {
+    <div class="state-container">
+      <p class="form-error">{{ error() }}</p>
+      <button mat-flat-button (click)="runSearch()">Try again</button>
+    </div>
+  }
+
+  @else if (movies().length === 0) {
+    <p class="empty-state">No movies match these filters.</p>
+  }
+
+  @else {
+
+    <p class="results-count">
+      {{ totalResults() }} {{ totalResults() === 1 ? 'movie' : 'movies' }} found
+    </p>
+
+    <div class="movies-grid">
+      @for (movie of movies(); track movie.id) {
+        <mat-card class="movie-card" [routerLink]="['/movie', movie.id]">
+          <div class="movie-poster">
+            @if (posterFor(movie); as posterUrl) {
+              <img [src]="posterUrl" [alt]="movie.title">
+            } @else {
+              <div class="poster-placeholder">
+                <mat-icon>movie</mat-icon>
+              </div>
+            }
+          </div>
+
+          <mat-card-content>
+            <p class="movie-title">{{ movie.title }}</p>
+
+            @if (movie.tmdbVoteAverage !== null) {
+              <p class="movie-rating">
+                <mat-icon>star</mat-icon>
+                {{ movie.tmdbVoteAverage.toFixed(1) }} / 10
+              </p>
+            } @else {
+              <p class="movie-rating muted">Not yet rated</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <div class="pagination-row">
+      <button
+        mat-stroked-button
+        [disabled]="page() <= 1"
+        (click)="previousPage()">
+        <mat-icon>chevron_left</mat-icon>
+        Prev
+      </button>
+
+      @for (item of pageItems(); track $index) {
+        @if (item === '...') {
+          <span class="page-ellipsis">…</span>
+        } @else {
+          <button
+            mat-flat-button
+            [color]="item === page() ? 'primary' : undefined"
+            class="page-button"
+            (click)="goToPage(item)">
+            {{ item }}
+          </button>
+        }
+      }
+
+      <button
+        mat-stroked-button
+        [disabled]="page() >= totalPages()"
+        (click)="nextPage()">
+        Next
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+
+</div>

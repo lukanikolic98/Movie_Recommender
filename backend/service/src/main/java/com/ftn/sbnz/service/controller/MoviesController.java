@@ -1,6 +1,7 @@
 package com.ftn.sbnz.service.controller;
 
 import com.ftn.sbnz.service.dto.MovieDto;
+import com.ftn.sbnz.service.dto.MovieSearchResultDto;
 import com.ftn.sbnz.service.dto.RecommendationDto;
 import com.ftn.sbnz.service.dto.RecommendationRequestDto;
 import com.ftn.sbnz.service.service.MoviesService;
@@ -74,6 +75,20 @@ public class MoviesController {
         return moviesService.deleteMovie(id)
                 ? ResponseEntity.ok("Movie deleted successfully")
                 : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/browse")
+    public MovieSearchResultDto browse(
+            @RequestParam(required = false) String term,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String language,
+            @RequestParam(defaultValue = "latest") String sortBy,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int pageSize) {
+
+        return moviesService.browseMovies(term, genre, minRating, year, language, sortBy, page, pageSize);
     }
 
     // POST /api/movies/recommendations

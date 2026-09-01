@@ -10,13 +10,22 @@ import com.ftn.sbnz.kjar.model.level_3.MovieStats;
 import com.ftn.sbnz.kjar.model.level_4.Recommendation;
 import com.ftn.sbnz.model.models.*;
 import com.ftn.sbnz.service.dto.MovieDto;
+import com.ftn.sbnz.service.dto.MovieSearchResultDto;
 import com.ftn.sbnz.service.dto.RecommendationDto;
 import com.ftn.sbnz.service.repository.MovieRepository;
 import com.ftn.sbnz.service.repository.UserMovieStatusRepository;
+import com.ftn.sbnz.service.repository.spec.MovieSpecifications;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import com.ftn.sbnz.service.dto.MovieSearchResultDto;
 import lombok.RequiredArgsConstructor;
 
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -68,6 +77,57 @@ public class MoviesService {
                         movieRepository.save(movie);
                         return true;
                 }).orElse(false);
+        }
+
+        public MovieSearchResultDto browseMovies(
+                        String term,
+                        String genre,
+                        Double minRating,
+                        Integer year,
+                        String language,
+                        String sortBy,
+                        int page,
+                        int pageSize) {
+
+                User currentUser = userService.getCurrentUser();
+
+                Specification<Movie> spec = Specification
+                                .where(MovieSpecifications.titleContains(term))
+                                .and(MovieSpecifications.hasGenre(genre))
+                                .and(MovieSpecifications.hasMinRating(minRating))
+                                .and(MovieSpecifications.releasedInYear(year))
+                                .and(MovieSpecifications.hasLanguage(language));
+
+                int safePageSize = Math.min(Math.max(pageSize, 1), 100);
+                int safePage = Math.max(page - 1, 0); // frontend is 1-based, Pageable is 0-based
+
+                Pageable pageable = PageRequest.of(safePage, safePageSize, resolveSort(sortBy));
+
+                Page<Movie> result = movieRepository.findAll(spec, pageable);
+
+                List<MovieDto> movies = result.getContent().stream()
+                                .map(movie -> toDto(movie, currentUser))
+                                .collect(Collectors.toList());
+
+                return new MovieSearchResultDto(
+                                movies,
+                                page,
+                                result.getTotalPages(),
+                                result.getTotalElements());
+        }
+
+        private Sort resolveSort(String sortBy) {
+                if (sortBy == null)
+                        sortBy = "latest";
+
+                return switch (sortBy) {
+                        case "oldest" -> Sort.by(Sort.Direction.ASC, "releaseDate");
+                        case "rating_desc" -> Sort.by(Sort.Direction.DESC, "tmdbVoteAverage");
+                        case "rating_asc" -> Sort.by(Sort.Direction.ASC, "tmdbVoteAverage");
+                        case "popularity_desc" -> Sort.by(Sort.Direction.DESC, "popularity");
+                        case "popularity_asc" -> Sort.by(Sort.Direction.ASC, "popularity");
+                        default -> Sort.by(Sort.Direction.DESC, "releaseDate"); // "latest"
+                };
         }
 
         // -- Map Movie entity ---> MovieDto
@@ -212,8 +272,27 @@ public class MoviesService {
 
                         // ------------------------------------------------------
                         System.out.println("\n Layer 2 facts");
-                        System.out.println("KeywordStats facts: "
-                                        + kieSession.getObjects(o -> o instanceof KeywordStats).size());
+                        prefKeywords.forEach(keyword -> {
+                                KeywordStats existing = kieSession.getObjects(
+                                                o -> o instanceof KeywordStats
+                                                                && ((KeywordStats) o).getKeyword()
+                                                                                .equalsIgnoreCase(keyword))
+                                                .stream()
+                                                .map(o -> (KeywordStats) o)
+                                                .findFirst()
+                                                .orElse(null);
+
+                                if (existing != null) {
+                                        existing.setLikes(existing.getLikes() + 5); // TODO: add a setter to drools
+                                                                                    // model
+                                        kieSession.update(kieSession.getFactHandle(existing), existing);
+                                } else {
+                                        kieSession.insert(new KeywordStats(user.getId(), keyword, 5, 0, 0, 0));
+                                }
+                        });
+
+                        System.out.println("KeywordStats facts: " +
+                                        kieSession.getObjects(o -> o instanceof KeywordStats).size());
 
                         kieSession.getAgenda().getAgendaGroup("A3").setFocus();
                         kieSession.fireAllRules();
