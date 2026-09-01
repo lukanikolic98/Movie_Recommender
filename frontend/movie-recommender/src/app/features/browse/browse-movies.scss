@@ -1,0 +1,168 @@
+.browse-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 16px 48px;
+}
+
+// ── Search
+
+.search-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.search-field {
+  flex: 1;
+}
+
+.search-button {
+  height: 56px;
+  padding: 0 28px;
+}
+
+// ── Filters
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: start;
+  gap: 32px;
+  margin-bottom: 8px;
+
+  mat-form-field {
+    width: 180px;
+  }
+}
+
+// ── Results state
+
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 64px 0;
+}
+
+.results-count {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 13px;
+  margin: 8px 0 16px;
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  padding: 48px 0;
+  text-align: center;
+}
+
+.form-error {
+  color: #b00020;
+  font-size: 14px;
+}
+
+// ── Grid
+
+.movies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.movie-card {
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  mat-card-content {
+    padding: 10px 12px 14px !important;
+  }
+}
+
+.movie-poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background: rgba(0, 0, 0, 0.06);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.3);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.movie-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.movie-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 13px;
+  color: #8a6400;
+
+  &.muted {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// ── Pagination
+
+.pagination-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 32px;
+}
+
+.page-button {
+  min-width: 40px;
+  padding: 0 12px;
+}
+
+.page-ellipsis {
+  padding: 0 4px;
+  color: rgba(0, 0, 0, 0.4);
+}
