@@ -5,6 +5,8 @@
 
   <a mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Home</a>
   <a mat-button routerLink="/browse" routerLinkActive="active-link">Browse</a>
+  <a mat-button routerLink="/recommendations" routerLinkActive="active-link">Recommendations</a>
+
 
   @if (isAuthenticated()) {
     <a mat-button [matMenuTriggerFor]="userMenu">

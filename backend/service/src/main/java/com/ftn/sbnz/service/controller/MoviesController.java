@@ -2,6 +2,7 @@ package com.ftn.sbnz.service.controller;
 
 import com.ftn.sbnz.service.dto.MovieDto;
 import com.ftn.sbnz.service.dto.MovieSearchResultDto;
+import com.ftn.sbnz.service.dto.PopularKeywordDto;
 import com.ftn.sbnz.service.dto.RecommendationDto;
 import com.ftn.sbnz.service.dto.RecommendationRequestDto;
 import com.ftn.sbnz.service.service.MoviesService;
@@ -91,12 +92,19 @@ public class MoviesController {
         return moviesService.browseMovies(term, genre, minRating, year, language, sortBy, page, pageSize);
     }
 
+    @GetMapping("/recommendations/keywords/popular")
+    public List<PopularKeywordDto> getPopularKeywords(
+            @RequestParam(defaultValue = "20") int limit) {
+        return moviesService.getPopularKeywords(limit);
+    }
+
     // POST /api/movies/recommendations
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/recommendations")
     public ResponseEntity<RecommendationDto> recommend(@RequestBody RecommendationRequestDto request) {
         RecommendationDto rec = new RecommendationDto();
-        rec.setMovies(moviesService.generateRecommendations(request.getKeywords(), request.getGenres()));
+        rec.setMovies(moviesService.generateRecommendations(request.getKeywords(), request.getGenres(),
+                request.isUseHistory()));
         return ResponseEntity.ok(rec);
     }
 }

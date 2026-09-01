@@ -1,0 +1,172 @@
+<div class="recommend-container">
+
+  <h2 class="page-title">Get Recommendations</h2>
+  <p class="page-subtitle">Pick some keywords and genres you're in the mood for.</p>
+
+  <div class="filters-panel">
+
+    <div class="field-block">
+      <span class="field-label">Keywords</span>
+
+      <mat-chip-grid #keywordGrid aria-label="Keywords">
+        @for (keyword of keywords(); track keyword) {
+          <mat-chip-row (removed)="removeKeyword(keyword)">
+            {{ keyword }}
+            <button matChipRemove aria-label="Remove keyword">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+
+        <input
+          placeholder="Type a keyword and press Enter..."
+          [formControl]="keywordInput"
+          [matChipInputFor]="keywordGrid"
+          [matChipInputAddOnBlur]="false"
+          (matChipInputTokenEnd)="addKeywordFromInput($event)">
+      </mat-chip-grid>
+
+      @if (remainingSuggestions().length > 0) {
+        <div class="suggested-keywords">
+          <span class="suggested-label">Suggested:</span>
+          @for (suggestion of remainingSuggestions(); track suggestion.keyword) {
+            <button
+              type="button"
+              mat-stroked-button
+              class="suggestion-chip"
+              (click)="addKeyword(suggestion.keyword)">
+              <mat-icon>add</mat-icon>
+              {{ suggestion.keyword }}
+              <span class="suggestion-count">{{ suggestion.likes }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="field-block">
+      <span class="field-label">Genres</span>
+
+      <mat-chip-listbox multiple aria-label="Genres">
+        @for (genre of allGenres; track genre) {
+          <mat-chip-option
+            [selected]="isGenreSelected(genre)"
+            (click)="toggleGenre(genre)">
+            {{ genre }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+
+    <div class="field-block history-toggle">
+      <mat-slide-toggle [checked]="useHistory()" (change)="useHistory.set($event.checked)">
+        Use my watch history to influence recommendations
+      </mat-slide-toggle>
+      <span
+        class="history-caption"
+        matTooltip="This option isn't wired up on the backend yet.">
+        (coming soon)
+      </span>
+    </div>
+
+    <div class="submit-row">
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canSubmit() || loading()"
+        (click)="getRecommendations()">
+        {{ loading() ? 'Finding movies...' : 'Get Recommendations' }}
+      </button>
+    </div>
+
+  </div>
+
+  @if (loading()) {
+    <div class="state-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  @else if (error()) {
+    <div class="state-container">
+      <p class="form-error">{{ error() }}</p>
+      <button mat-flat-button (click)="getRecommendations()">Try again</button>
+    </div>
+  }
+
+  @else if (hasSearched() && allResults().length === 0) {
+    <p class="empty-state">
+      No recommendations found for these picks — try different keywords or genres.
+    </p>
+  }
+
+  @else if (allResults().length > 0) {
+
+    <div class="movies-grid">
+      @for (rec of pagedResults(); track rec.movie.id) {
+        <mat-card class="movie-card" [routerLink]="['/movie', rec.movie.id]">
+          <div class="movie-poster">
+            @if (posterFor(rec); as posterUrl) {
+              <img [src]="posterUrl" [alt]="rec.movie.title">
+            } @else {
+              <div class="poster-placeholder">
+                <mat-icon>movie</mat-icon>
+              </div>
+            }
+          </div>
+
+          <mat-card-content>
+            <p class="movie-title">{{ rec.movie.title }}</p>
+
+            @if (rec.movie.tmdbVoteAverage !== null) {
+              <p class="movie-rating">
+                <mat-icon>star</mat-icon>
+                {{ rec.movie.tmdbVoteAverage.toFixed(1) }} / 10
+              </p>
+            }
+
+            <p class="movie-score">
+              <mat-icon>insights</mat-icon>
+              Match score: {{ rec.score.toFixed(2) }}
+            </p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination-row">
+        <button
+          mat-stroked-button
+          [disabled]="page() <= 1"
+          (click)="previousPage()">
+          <mat-icon>chevron_left</mat-icon>
+          Prev
+        </button>
+
+        @for (item of pageItems(); track $index) {
+          @if (item === '...') {
+            <span class="page-ellipsis">…</span>
+          } @else {
+            <button
+              mat-flat-button
+              [color]="item === page() ? 'primary' : undefined"
+              class="page-button"
+              (click)="goToPage(item)">
+              {{ item }}
+            </button>
+          }
+        }
+
+        <button
+          mat-stroked-button
+          [disabled]="page() >= totalPages()"
+          (click)="nextPage()">
+          Next
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    }
+  }
+
+</div>
