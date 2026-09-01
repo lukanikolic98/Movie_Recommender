@@ -1,6 +1,5 @@
 package com.ftn.sbnz.service.service;
 
-import com.ftn.sbnz.kjar.model.PreferredKeyword;
 import com.ftn.sbnz.kjar.model.facts.MovieFact;
 import com.ftn.sbnz.kjar.model.facts.ReviewFact;
 import com.ftn.sbnz.kjar.model.facts.UserFact;
