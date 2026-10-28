@@ -14,6 +14,16 @@ A movie database and recommendation app built for the Knowledge Based Systems (S
 - **Popular keyword suggestions** — surfaced on the recommendations page, computed by running the same rule engine over every user's likes.
 - **Auth** — JWT access/refresh tokens, registration, profile editing, password change.
 
+## Screenshots
+
+**Browse & search**: filter by genre, rating, year and language, with pagination
+
+![Browse page with filters and paginated movie grid](Documentation/browse.png)
+
+**Recommendations**: pick keywords and genres, optionally use watch history, get a scored ranked list
+
+![Recommendations page showing keyword chips and scored results](Documentation/recommendation.png)
+
 ## Tech Stack
 
 **Backend** — Java, Spring Boot, Spring Security (JWT), Spring Data JPA, [Drools / KIE](https://www.drools.org/) rule engine.
